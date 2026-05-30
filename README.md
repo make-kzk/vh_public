@@ -18,6 +18,28 @@ This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM
 
 * [/server](./server/src/main/kotlin) is for the Ktor server application.
 
+### Authentication (web MVP)
+
+VibeHunt uses **OAuth 2.0 with PKCE** (Google and Apple), **JWT verification** for Apple ID tokens, and **httpOnly session cookies**. The web client talks to `/api/auth/*` with cookies (webpack dev server proxies `/api` to Ktor on port 8080).
+
+User role (`SEEKER` or `EMPLOYER`) is chosen once via `POST /api/auth/complete-registration` and cannot be changed afterward.
+
+1. Copy [`env.example`](./env.example) to `.env` and fill in OAuth credentials.
+2. Start PostgreSQL: `docker compose up -d`
+3. Start the API: `./gradlew :server:run` (migrations run automatically via Flyway)
+4. Start the web app: `./gradlew :app:webApp:jsBrowserDevelopmentRun` → http://localhost:8081
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/auth/oauth/start` | Start Google/Apple OAuth (PKCE) |
+| `GET /api/auth/oauth/callback/google` | Google redirect handler |
+| `POST /api/auth/oauth/callback/apple` | Apple form_post callback |
+| `GET /api/auth/me` | Current user (cookie session) |
+| `POST /api/auth/logout` | Clear session |
+| `POST /api/auth/complete-registration` | Set immutable role |
+
+**Google / Apple blockers:** OAuth does not work until client IDs, secrets, and redirect URIs in `.env` match your cloud console configuration. Apple also requires a Services ID, Sign in with Apple key (`.p8`), and the redirect URI registered for `form_post` to the server callback URL.
+
 ### Running the apps
 
 Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
@@ -27,9 +49,7 @@ Use the run configurations provided by the run widget in your IDE's toolbar. You
   - Hot reload: `./gradlew :app:desktopApp:hotRun --auto`
   - Standard run: `./gradlew :app:desktopApp:run`
 - Server: `./gradlew :server:run`
-- Web app:
-  - Wasm target (faster, modern browsers): `./gradlew :app:webApp:wasmJsBrowserDevelopmentRun`
-  - JS target (slower, supports older browsers): `./gradlew :app:webApp:jsBrowserDevelopmentRun`
+- Web app (auth MVP, JS only): `./gradlew :app:webApp:jsBrowserDevelopmentRun` → http://localhost:8081
 - iOS app: open the [/app/iosApp](./app/iosApp) directory in Xcode and run it from there.
 
 ### Running tests

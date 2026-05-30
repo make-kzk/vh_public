@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -8,20 +8,29 @@ plugins {
 
 kotlin {
     js {
-        browser()
-        binaries.executable()
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
+        browser {
+            commonWebpackConfig {
+                devServer =
+                    (devServer ?: KotlinWebpackConfig.DevServer()).copy(
+                        port = 8081,
+                        proxy =
+                            mutableListOf(
+                                KotlinWebpackConfig.DevServer.Proxy(
+                                    context = mutableListOf("/api"),
+                                    target = "http://localhost:8080",
+                                    secure = false,
+                                    changeOrigin = true,
+                                ),
+                            ),
+                    )
+            }
+        }
         binaries.executable()
     }
 
     sourceSets {
         commonMain.dependencies {
             implementation(projects.app.shared)
-
             implementation(libs.compose.ui)
         }
     }
