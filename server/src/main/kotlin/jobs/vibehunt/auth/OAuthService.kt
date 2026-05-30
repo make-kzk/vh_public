@@ -6,6 +6,8 @@ import jobs.vibehunt.auth.oauth.OAuthUserInfo
 import jobs.vibehunt.config.AppConfig
 import jobs.vibehunt.db.OAuthStateRepository
 import jobs.vibehunt.db.UserRepository
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -18,8 +20,14 @@ class OAuthService(
 ) {
     fun startOAuth(provider: OAuthProvider, redirectUri: String): OAuthStartResponse {
         when (provider) {
-            OAuthProvider.GOOGLE -> require(config.googleEnabled) { "Google OAuth is not configured" }
-            OAuthProvider.APPLE -> require(config.appleEnabled) { "Apple OAuth is not configured" }
+            OAuthProvider.GOOGLE ->
+                require(config.googleEnabled || config.googleDevMockEnabled) {
+                    "Google OAuth is not configured"
+                }
+            OAuthProvider.APPLE ->
+                require(config.appleEnabled || config.appleDevMockEnabled) {
+                    "Apple OAuth is not configured"
+                }
         }
         val state = Pkce.generateState()
         val codeVerifier = Pkce.generateCodeVerifier()
@@ -34,11 +42,42 @@ class OAuthService(
         val authorizationUrl =
             when (provider) {
                 OAuthProvider.GOOGLE ->
-                    googleOAuthClient!!.buildAuthorizationUrl(state, codeChallenge)
+                    when {
+                        config.googleEnabled ->
+                            googleOAuthClient!!.buildAuthorizationUrl(state, codeChallenge)
+                        else -> devMockAuthorizationUrl(OAuthProvider.GOOGLE, state)
+                    }
                 OAuthProvider.APPLE ->
-                    appleOAuthClient!!.buildAuthorizationUrl(state)
+                    when {
+                        config.appleEnabled ->
+                            appleOAuthClient!!.buildAuthorizationUrl(state)
+                        else -> devMockAuthorizationUrl(OAuthProvider.APPLE, state)
+                    }
             }
         return OAuthStartResponse(authorizationUrl = authorizationUrl, state = state)
+    }
+
+    suspend fun completeDevMockOAuth(provider: OAuthProvider, state: String): AuthUserDto {
+        require(
+            when (provider) {
+                OAuthProvider.GOOGLE -> config.googleDevMockEnabled
+                OAuthProvider.APPLE -> config.appleDevMockEnabled
+            },
+        ) { "Dev OAuth mock is not enabled for $provider" }
+        val stored =
+            oauthStateRepository.consume(state)
+                ?: error("Invalid or expired OAuth state")
+        if (stored.provider != provider) {
+            error("OAuth provider mismatch")
+        }
+        return upsertUser(
+            provider,
+            OAuthUserInfo(
+                subject = "dev-${provider.name.lowercase()}",
+                email = "dev-${provider.name.lowercase()}@localhost.vibehunt",
+                displayName = "Dev User (${provider.name})",
+            ),
+        )
     }
 
     suspend fun completeOAuth(
@@ -60,6 +99,16 @@ class OAuthService(
                     appleOAuthClient!!.exchangeCode(code)
             }
         return upsertUser(provider, userInfo)
+    }
+
+    private fun devMockAuthorizationUrl(provider: OAuthProvider, state: String): String {
+        val encodedState = URLEncoder.encode(state, StandardCharsets.UTF_8)
+        val segment =
+            when (provider) {
+                OAuthProvider.GOOGLE -> "google"
+                OAuthProvider.APPLE -> "apple"
+            }
+        return "${config.serverPublicUrl}/api/auth/dev/oauth/$segment?state=$encodedState"
     }
 
     private fun upsertUser(provider: OAuthProvider, userInfo: OAuthUserInfo): AuthUserDto {

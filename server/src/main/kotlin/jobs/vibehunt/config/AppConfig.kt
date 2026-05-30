@@ -16,6 +16,8 @@ data class AppConfig(
     val appleKeyId: String?,
     val applePrivateKey: String?,
     val appleRedirectUri: String?,
+    val oauthDevMock: Boolean,
+    val serverPublicUrl: String,
 ) {
     val googleEnabled: Boolean =
         !googleClientId.isNullOrBlank() &&
@@ -29,30 +31,42 @@ data class AppConfig(
             !applePrivateKey.isNullOrBlank() &&
             !appleRedirectUri.isNullOrBlank()
 
+    val googleDevMockEnabled: Boolean = oauthDevMock && !googleEnabled
+
+    val appleDevMockEnabled: Boolean = oauthDevMock && !appleEnabled
+
     companion object {
-        fun fromEnvironment(): AppConfig =
-            AppConfig(
-                databaseUrl = env("DATABASE_URL", "jdbc:postgresql://localhost:5432/vibehunt"),
-                databaseUser = env("DATABASE_USER", "vibehunt"),
-                databasePassword = env("DATABASE_PASSWORD", "vibehunt"),
-                webOrigin = env("WEB_ORIGIN", "http://localhost:8081"),
-                frontendUrl = env("FRONTEND_URL", "http://localhost:8081"),
-                sessionCookieName = env("SESSION_COOKIE_NAME", "vibehunt_session"),
-                sessionDays = env("SESSION_DAYS", "30").toLong(),
-                googleClientId = envOrNull("GOOGLE_CLIENT_ID"),
-                googleClientSecret = envOrNull("GOOGLE_CLIENT_SECRET"),
-                googleRedirectUri = envOrNull("GOOGLE_REDIRECT_URI"),
-                appleClientId = envOrNull("APPLE_CLIENT_ID"),
-                appleTeamId = envOrNull("APPLE_TEAM_ID"),
-                appleKeyId = envOrNull("APPLE_KEY_ID"),
-                applePrivateKey = envOrNull("APPLE_PRIVATE_KEY")?.replace("\\n", "\n"),
-                appleRedirectUri = envOrNull("APPLE_REDIRECT_URI"),
+        fun fromEnvironment(): AppConfig {
+            val dotEnv = DotEnv.load()
+            return AppConfig(
+                databaseUrl = env("DATABASE_URL", "jdbc:postgresql://localhost:5432/vibehunt", dotEnv),
+                databaseUser = env("DATABASE_USER", "vibehunt", dotEnv),
+                databasePassword = env("DATABASE_PASSWORD", "vibehunt", dotEnv),
+                webOrigin = env("WEB_ORIGIN", "http://localhost:8081", dotEnv),
+                frontendUrl = env("FRONTEND_URL", "http://localhost:8081", dotEnv),
+                sessionCookieName = env("SESSION_COOKIE_NAME", "vibehunt_session", dotEnv),
+                sessionDays = env("SESSION_DAYS", "30", dotEnv).toLong(),
+                googleClientId = envOrNull("GOOGLE_CLIENT_ID", dotEnv),
+                googleClientSecret = envOrNull("GOOGLE_CLIENT_SECRET", dotEnv),
+                googleRedirectUri = envOrNull("GOOGLE_REDIRECT_URI", dotEnv),
+                appleClientId = envOrNull("APPLE_CLIENT_ID", dotEnv),
+                appleTeamId = envOrNull("APPLE_TEAM_ID", dotEnv),
+                appleKeyId = envOrNull("APPLE_KEY_ID", dotEnv),
+                applePrivateKey = envOrNull("APPLE_PRIVATE_KEY", dotEnv)?.replace("\\n", "\n"),
+                appleRedirectUri = envOrNull("APPLE_REDIRECT_URI", dotEnv),
+                oauthDevMock = env("OAUTH_DEV_MOCK", "false", dotEnv).equals("true", ignoreCase = true),
+                serverPublicUrl = env("SERVER_PUBLIC_URL", "http://localhost:8080", dotEnv),
             )
+        }
 
-        private fun env(name: String, default: String): String =
-            System.getenv(name)?.takeIf { it.isNotBlank() } ?: default
+        private fun env(name: String, default: String, dotEnv: Map<String, String>): String =
+            resolve(name, dotEnv) ?: default
 
-        private fun envOrNull(name: String): String? =
+        private fun envOrNull(name: String, dotEnv: Map<String, String>): String? =
+            resolve(name, dotEnv)
+
+        private fun resolve(name: String, dotEnv: Map<String, String>): String? =
             System.getenv(name)?.takeIf { it.isNotBlank() }
+                ?: dotEnv[name]?.takeIf { it.isNotBlank() }
     }
 }
