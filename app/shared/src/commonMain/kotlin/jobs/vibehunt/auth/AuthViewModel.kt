@@ -40,12 +40,17 @@ class AuthViewModel(
         }
     }
 
-    fun signInDev() {
+    fun signInDev(email: String) {
+        val normalizedEmail = email.trim().lowercase()
+        if (normalizedEmail.isBlank() || !normalizedEmail.contains('@')) {
+            _errorMessage.value = "Enter a valid email address"
+            return
+        }
         viewModelScope.launch {
             _isBusy.value = true
             _errorMessage.value = null
             try {
-                val user = repository.devLogin()
+                val user = repository.devLogin(normalizedEmail)
                 _state.value =
                     when {
                         user.role == null -> AuthState.NeedsRegistration(user)

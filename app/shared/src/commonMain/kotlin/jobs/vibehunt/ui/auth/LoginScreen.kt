@@ -5,13 +5,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import jobs.vibehunt.auth.AuthViewModel
@@ -23,6 +30,8 @@ fun LoginScreen(
     isBusy: Boolean,
     errorMessage: String?,
 ) {
+    var email by rememberSaveable { mutableStateOf("") }
+
     AdaptiveContent {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -38,6 +47,15 @@ fun LoginScreen(
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
             )
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                singleLine = true,
+                enabled = !isBusy,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                modifier = Modifier.fillMaxWidth(),
+            )
             if (errorMessage != null) {
                 Text(
                     text = errorMessage,
@@ -49,10 +67,11 @@ fun LoginScreen(
                 CircularProgressIndicator()
             } else {
                 Button(
-                    onClick = { viewModel.signInDev() },
+                    onClick = { viewModel.signInDev(email) },
+                    enabled = email.isNotBlank(),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("Continue (dev)")
+                    Text("Continue")
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))

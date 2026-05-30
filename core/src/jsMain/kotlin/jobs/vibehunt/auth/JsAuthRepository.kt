@@ -13,8 +13,12 @@ class JsAuthRepository(
         return response.body<MeResponse>().user
     }
 
-    override suspend fun devLogin(): AuthUserDto {
-        val response = httpClient.authPost("/api/auth/dev/login")
+    override suspend fun devLogin(email: String): AuthUserDto {
+        val response =
+            httpClient.authPost(
+                "/api/auth/dev/login",
+                DevLoginRequest(email = email),
+            )
         if (!response.status.isSuccess()) {
             throw AuthException("Failed to sign in: ${response.status}")
         }

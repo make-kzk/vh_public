@@ -14,6 +14,15 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 class UserRepository {
+    fun findByEmail(email: String): AuthUserDto? =
+        transaction {
+            UsersTable
+                .selectAll()
+                .where { UsersTable.email eq email }
+                .firstOrNull()
+                ?.toDto()
+        }
+
     fun findByAuthKey(authProvider: String, authSubject: String): AuthUserDto? =
         transaction {
             UsersTable

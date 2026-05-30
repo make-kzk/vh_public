@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import jobs.vibehunt.auth.CompleteRegistrationRequest
+import jobs.vibehunt.auth.DevLoginRequest
 import jobs.vibehunt.auth.MeResponse
 import jobs.vibehunt.auth.SessionService
 import jobs.vibehunt.auth.UserAuthService
@@ -29,7 +30,13 @@ fun Route.authRoutes(
                 )
                 return@post
             }
-            val user = userAuthService.findOrCreateDevUser()
+            val body = call.receive<DevLoginRequest>()
+            val user =
+                try {
+                    userAuthService.findOrCreateDevUser(body.email)
+                } catch (e: IllegalArgumentException) {
+                    return@post call.respond(HttpStatusCode.BadRequest, mapOf("message" to (e.message ?: "Invalid email")))
+                }
             val sessionToken = sessionService.createSession(UUID.fromString(user.id))
             call.setSessionCookie(config, sessionToken)
             call.respond(user)

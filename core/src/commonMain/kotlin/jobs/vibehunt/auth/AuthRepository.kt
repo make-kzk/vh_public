@@ -3,7 +3,7 @@ package jobs.vibehunt.auth
 interface AuthRepository {
     suspend fun fetchMe(): AuthUserDto?
 
-    suspend fun devLogin(): AuthUserDto
+    suspend fun devLogin(email: String): AuthUserDto
 
     suspend fun logout()
 

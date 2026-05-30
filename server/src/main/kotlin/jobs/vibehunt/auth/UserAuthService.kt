@@ -6,16 +6,15 @@ import java.util.UUID
 class UserAuthService(
     private val userRepository: UserRepository,
 ) {
-    fun findOrCreateDevUser(): AuthUserDto {
-        val existing = userRepository.findByAuthKey(DEV_PROVIDER, DEV_SUBJECT)
-        if (existing != null) {
-            return existing
-        }
+    fun findOrCreateDevUser(email: String): AuthUserDto {
+        val normalizedEmail = email.trim().lowercase()
+        require(normalizedEmail.contains('@')) { "Invalid email address" }
+        userRepository.findByEmail(normalizedEmail)?.let { return it }
         return userRepository.create(
-            email = DEV_EMAIL,
-            displayName = DEV_DISPLAY_NAME,
+            email = normalizedEmail,
+            displayName = normalizedEmail.substringBefore('@'),
             authProvider = DEV_PROVIDER,
-            authSubject = DEV_SUBJECT,
+            authSubject = normalizedEmail,
         )
     }
 
@@ -32,8 +31,5 @@ class UserAuthService(
 
     private companion object {
         const val DEV_PROVIDER = "dev"
-        const val DEV_SUBJECT = "local"
-        const val DEV_EMAIL = "dev@localhost.vibehunt"
-        const val DEV_DISPLAY_NAME = "Dev User"
     }
 }
