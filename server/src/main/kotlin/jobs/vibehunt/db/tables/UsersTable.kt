@@ -10,4 +10,8 @@ object UsersTable : UUIDTable("users") {
     val oauthProvider = varchar("oauth_provider", 20)
     val oauthSubject = varchar("oauth_subject", 255)
     val createdAt = timestampWithTimeZone("created_at")
+
+    init {
+        uniqueIndex(oauthProvider, oauthSubject)
+    }
 }

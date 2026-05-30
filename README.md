@@ -29,6 +29,14 @@ User role (`SEEKER` or `EMPLOYER`) is chosen once via `POST /api/auth/complete-r
 3. Start the API: `./gradlew :server:run` (migrations run automatically via Flyway)
 4. Start the web app: `./gradlew :app:webApp:jsBrowserDevelopmentRun` → http://localhost:8081
 
+Database migrations are Kotlin classes (`BaseJavaMigration` + Exposed) under `server/src/main/kotlin/db/migration/`. If you already applied older SQL migrations locally, reset the database:
+
+```bash
+docker compose down -v && docker compose up -d
+```
+
+Alternatively, run Flyway `repair` and drop any leftover `oauth_states` table if present.
+
 | Endpoint | Description |
 |----------|-------------|
 | `POST /api/auth/dev/login` | Dev-only sign-in (requires `AUTH_DEV_MODE=true`) |
