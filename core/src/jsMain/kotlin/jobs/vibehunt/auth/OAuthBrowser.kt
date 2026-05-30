@@ -2,7 +2,7 @@ package jobs.vibehunt.auth
 
 import kotlinx.browser.window
 
-fun openOAuthAuthorizationUrl(url: String) {
+fun navigateToOAuthAuthorizationUrl(url: String) {
     window.location.href = url
 }
 
