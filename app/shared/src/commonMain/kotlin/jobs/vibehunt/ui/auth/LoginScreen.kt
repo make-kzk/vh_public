@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import jobs.vibehunt.auth.AuthViewModel
-import jobs.vibehunt.auth.defaultAuthRedirectUri
 import jobs.vibehunt.ui.adaptive.AdaptiveContent
 
 @Composable
@@ -51,16 +49,10 @@ fun LoginScreen(
                 CircularProgressIndicator()
             } else {
                 Button(
-                    onClick = { viewModel.startGoogleSignIn(defaultAuthRedirectUri()) },
+                    onClick = { viewModel.signInDev() },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("Continue with Google")
-                }
-                OutlinedButton(
-                    onClick = { viewModel.startAppleSignIn(defaultAuthRedirectUri()) },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Continue with Apple")
+                    Text("Continue (dev)")
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))

@@ -28,11 +28,6 @@ dependencies {
     implementation(libs.flyway.core)
     implementation(libs.flyway.database.postgresql)
     implementation(libs.postgresql)
-    implementation(libs.java.jwt)
-    implementation(libs.jwks.rsa)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.contentNegotiation)
-    implementation("io.ktor:ktor-client-cio:${libs.versions.ktor.get()}")
     testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.kotlin.testJunit)
 }

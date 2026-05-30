@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class AuthViewModel(
@@ -41,23 +40,20 @@ class AuthViewModel(
         }
     }
 
-    fun startGoogleSignIn(redirectUri: String) {
-        startOAuth(OAuthProvider.GOOGLE, redirectUri)
-    }
-
-    fun startAppleSignIn(redirectUri: String) {
-        startOAuth(OAuthProvider.APPLE, redirectUri)
-    }
-
-    private fun startOAuth(provider: OAuthProvider, redirectUri: String) {
+    fun signInDev() {
         viewModelScope.launch {
             _isBusy.value = true
             _errorMessage.value = null
             try {
-                val response = repository.startOAuth(provider, redirectUri)
-                openOAuthAuthorizationUrl(response.authorizationUrl)
+                val user = repository.devLogin()
+                _state.value =
+                    when {
+                        user.role == null -> AuthState.NeedsRegistration(user)
+                        else -> AuthState.Authenticated(user)
+                    }
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "OAuth start failed"
+                _errorMessage.value = e.message ?: "Sign in failed"
+                _state.value = AuthState.Unauthenticated
             } finally {
                 _isBusy.value = false
             }
@@ -92,17 +88,4 @@ class AuthViewModel(
             }
         }
     }
-
-    fun onOAuthCallbackQuery(error: String?) {
-        if (error != null) {
-            _errorMessage.value = error
-            _state.value = AuthState.Unauthenticated
-            return
-        }
-        refreshSession()
-    }
 }
-
-expect fun openOAuthAuthorizationUrl(url: String)
-
-expect fun defaultAuthRedirectUri(): String

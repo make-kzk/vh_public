@@ -13,17 +13,10 @@ class JsAuthRepository(
         return response.body<MeResponse>().user
     }
 
-    override suspend fun startOAuth(
-        provider: OAuthProvider,
-        redirectUri: String,
-    ): OAuthStartResponse {
-        val response =
-            httpClient.authPost(
-                "/api/auth/oauth/start",
-                OAuthStartRequest(provider = provider, redirectUri = redirectUri),
-            )
+    override suspend fun devLogin(): AuthUserDto {
+        val response = httpClient.authPost("/api/auth/dev/login")
         if (!response.status.isSuccess()) {
-            throw AuthException("Failed to start OAuth: ${response.status}")
+            throw AuthException("Failed to sign in: ${response.status}")
         }
         return response.body()
     }

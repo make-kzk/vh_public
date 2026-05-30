@@ -4,9 +4,16 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 internal object DotEnv {
-    fun load(envFile: Path = Path.of(System.getProperty("user.dir"), ".env")): Map<String, String> {
-        if (!Files.exists(envFile)) return emptyMap()
-        return Files.readAllLines(envFile).mapNotNull { parseLine(it) }.toMap()
+    fun load(): Map<String, String> {
+        var dir = Path.of(System.getProperty("user.dir"))
+        while (true) {
+            val envFile = dir.resolve(".env")
+            if (Files.exists(envFile)) {
+                return Files.readAllLines(envFile).mapNotNull { parseLine(it) }.toMap()
+            }
+            dir = dir.parent ?: break
+        }
+        return emptyMap()
     }
 
     private fun parseLine(line: String): Pair<String, String>? {

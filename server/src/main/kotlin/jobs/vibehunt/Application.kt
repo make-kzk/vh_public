@@ -1,18 +1,14 @@
 package jobs.vibehunt
 
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import jobs.vibehunt.auth.OAuthService
 import jobs.vibehunt.auth.SessionService
-import jobs.vibehunt.auth.oauth.AppleOAuthClient
-import jobs.vibehunt.auth.oauth.GoogleOAuthClient
+import jobs.vibehunt.auth.UserAuthService
 import jobs.vibehunt.config.AppConfig
 import jobs.vibehunt.db.DatabaseFactory
-import jobs.vibehunt.db.OAuthStateRepository
 import jobs.vibehunt.db.SessionRepository
 import jobs.vibehunt.db.UserRepository
 import jobs.vibehunt.plugins.configureCors
@@ -30,18 +26,8 @@ fun Application.module() {
 
     val userRepository = UserRepository()
     val sessionRepository = SessionRepository()
-    val oauthStateRepository = OAuthStateRepository()
     val sessionService = SessionService(config, sessionRepository, userRepository)
-    val googleClient = if (config.googleEnabled) GoogleOAuthClient(config) else null
-    val appleClient = if (config.appleEnabled) AppleOAuthClient(config) else null
-    val oauthService =
-        OAuthService(
-            config = config,
-            oauthStateRepository = oauthStateRepository,
-            userRepository = userRepository,
-            googleOAuthClient = googleClient,
-            appleOAuthClient = appleClient,
-        )
+    val userAuthService = UserAuthService(userRepository)
 
     configureSerialization()
     configureCors(config)
@@ -53,6 +39,6 @@ fun Application.module() {
         get("/health") {
             call.respond(mapOf("status" to "ok"))
         }
-        authRoutes(config, oauthService, sessionService)
+        authRoutes(config, userAuthService, sessionService)
     }
 }

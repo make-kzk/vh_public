@@ -5,10 +5,8 @@ actual fun createAuthRepository(): AuthRepository = UnsupportedAuthRepository()
 private class UnsupportedAuthRepository : AuthRepository {
     override suspend fun fetchMe(): AuthUserDto? = null
 
-    override suspend fun startOAuth(
-        provider: OAuthProvider,
-        redirectUri: String,
-    ): OAuthStartResponse = throw UnsupportedOperationException("Auth is web-only in MVP")
+    override suspend fun devLogin(): AuthUserDto =
+        throw UnsupportedOperationException("Auth is web-only in MVP")
 
     override suspend fun logout() {}
 

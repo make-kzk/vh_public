@@ -1,7 +1,6 @@
 package jobs.vibehunt.db
 
 import jobs.vibehunt.auth.AuthUserDto
-import jobs.vibehunt.auth.OAuthProvider
 import jobs.vibehunt.auth.UserRole
 import jobs.vibehunt.db.tables.UsersTable
 import org.jetbrains.exposed.sql.ResultRow
@@ -15,13 +14,13 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 class UserRepository {
-    fun findByOAuth(provider: OAuthProvider, subject: String): AuthUserDto? =
+    fun findByAuthKey(authProvider: String, authSubject: String): AuthUserDto? =
         transaction {
             UsersTable
                 .selectAll()
                 .where {
-                    (UsersTable.oauthProvider eq provider.name.lowercase()) and
-                        (UsersTable.oauthSubject eq subject)
+                    (UsersTable.oauthProvider eq authProvider) and
+                        (UsersTable.oauthSubject eq authSubject)
                 }
                 .firstOrNull()
                 ?.toDto()
@@ -39,8 +38,8 @@ class UserRepository {
     fun create(
         email: String,
         displayName: String?,
-        provider: OAuthProvider,
-        subject: String,
+        authProvider: String,
+        authSubject: String,
     ): AuthUserDto =
         transaction {
             val now = OffsetDateTime.now()
@@ -49,8 +48,8 @@ class UserRepository {
                     it[UsersTable.email] = email
                     it[UsersTable.displayName] = displayName
                     it[UsersTable.role] = null
-                    it[UsersTable.oauthProvider] = provider.name.lowercase()
-                    it[UsersTable.oauthSubject] = subject
+                    it[UsersTable.oauthProvider] = authProvider
+                    it[UsersTable.oauthSubject] = authSubject
                     it[UsersTable.createdAt] = now
                 }[UsersTable.id].value
             AuthUserDto(
