@@ -20,7 +20,7 @@ class JsAuthRepository(
                 DevLoginRequest(email = email),
             )
         if (!response.status.isSuccess()) {
-            throw AuthException("Failed to sign in: ${response.status}")
+            throw AuthException("Не удалось войти: ${response.status}")
         }
         return response.body()
     }
@@ -36,7 +36,7 @@ class JsAuthRepository(
                 CompleteRegistrationRequest(role = role),
             )
         if (!response.status.isSuccess()) {
-            throw AuthException("Failed to complete registration: ${response.status}")
+            throw AuthException("Не удалось завершить регистрацию: ${response.status}")
         }
         return response.body()
     }

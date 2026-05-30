@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import jobs.vibehunt.auth.AuthUserDto
 import jobs.vibehunt.auth.AuthViewModel
 import jobs.vibehunt.ui.adaptive.AdaptiveContent
+import jobs.vibehunt.ui.displayLabel
 
 @Composable
 fun HomeScreen(
@@ -25,16 +26,16 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = "Signed in",
+                text = "Вы вошли",
                 style = MaterialTheme.typography.headlineSmall,
             )
             Text(
-                text = "${user.email} · ${user.role?.name ?: "unknown"}",
+                text = "${user.email} · ${user.role?.displayLabel() ?: "неизвестно"}",
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Start,
             )
             Button(onClick = { viewModel.logout() }) {
-                Text("Sign out")
+                Text("Выйти")
             }
         }
     }

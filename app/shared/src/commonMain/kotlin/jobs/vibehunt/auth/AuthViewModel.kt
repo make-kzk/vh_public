@@ -32,7 +32,7 @@ class AuthViewModel(
                         else -> AuthState.Authenticated(user)
                     }
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Failed to load session"
+                _errorMessage.value = e.message ?: "Не удалось загрузить сессию"
                 _state.value = AuthState.Unauthenticated
             } finally {
                 _isBusy.value = false
@@ -43,7 +43,7 @@ class AuthViewModel(
     fun signInDev(email: String) {
         val normalizedEmail = email.trim().lowercase()
         if (normalizedEmail.isBlank() || !normalizedEmail.contains('@')) {
-            _errorMessage.value = "Enter a valid email address"
+            _errorMessage.value = "Введите корректный адрес электронной почты"
             return
         }
         viewModelScope.launch {
@@ -57,7 +57,7 @@ class AuthViewModel(
                         else -> AuthState.Authenticated(user)
                     }
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Sign in failed"
+                _errorMessage.value = e.message ?: "Не удалось войти"
                 _state.value = AuthState.Unauthenticated
             } finally {
                 _isBusy.value = false
@@ -73,7 +73,7 @@ class AuthViewModel(
                 val user = repository.completeRegistration(role)
                 _state.value = AuthState.Authenticated(user)
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Registration failed"
+                _errorMessage.value = e.message ?: "Не удалось завершить регистрацию"
             } finally {
                 _isBusy.value = false
             }

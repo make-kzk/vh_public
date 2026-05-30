@@ -8,7 +8,7 @@ class UserAuthService(
 ) {
     fun findOrCreateDevUser(email: String): AuthUserDto {
         val normalizedEmail = email.trim().lowercase()
-        require(normalizedEmail.contains('@')) { "Invalid email address" }
+        require(normalizedEmail.contains('@')) { "Некорректный адрес электронной почты" }
         userRepository.findByEmail(normalizedEmail)?.let { return it }
         return userRepository.create(
             email = normalizedEmail,
@@ -21,12 +21,12 @@ class UserAuthService(
     fun completeRegistration(userId: UUID, role: UserRole): AuthUserDto {
         val user =
             userRepository.findById(userId)
-                ?: error("User not found")
+                ?: error("Пользователь не найден")
         if (user.role != null) {
-            error("Role is already set and cannot be changed")
+            error("Роль уже выбрана и не может быть изменена")
         }
         return userRepository.setRole(userId, role)
-            ?: error("Failed to set role")
+            ?: error("Не удалось установить роль")
     }
 
     private companion object {

@@ -43,14 +43,14 @@ fun LoginScreen(
                 style = MaterialTheme.typography.headlineLarge,
             )
             Text(
-                text = "Find your next role or hire talent. Sign in to continue.",
+                text = "Найдите работу или наймите специалистов. Войдите, чтобы продолжить.",
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
             )
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
+                label = { Text("Электронная почта") },
                 singleLine = true,
                 enabled = !isBusy,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -71,12 +71,12 @@ fun LoginScreen(
                     enabled = email.isNotBlank(),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("Continue")
+                    Text("Продолжить")
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Your role (job seeker or employer) is chosen once after sign-in and cannot be changed later.",
+                text = "Роль (соискатель или работодатель) выбирается один раз после входа и позже не меняется.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,

@@ -32,12 +32,12 @@ fun RoleSelectionScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "Choose your account type",
+                text = "Выберите тип аккаунта",
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center,
             )
             Text(
-                text = "Welcome${user.displayName?.let { ", $it" } ?: ""}. This choice is permanent for ${user.email}.",
+                text = "Добро пожаловать${user.displayName?.let { ", $it" } ?: ""}. Этот выбор нельзя изменить для ${user.email}.",
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
@@ -54,13 +54,13 @@ fun RoleSelectionScreen(
                     onClick = { viewModel.completeRegistration(UserRole.SEEKER) },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("I'm looking for a job (Seeker)")
+                    Text("Ищу работу")
                 }
                 OutlinedButton(
                     onClick = { viewModel.completeRegistration(UserRole.EMPLOYER) },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("I'm hiring (Employer)")
+                    Text("Нанимаю сотрудников")
                 }
             }
         }
