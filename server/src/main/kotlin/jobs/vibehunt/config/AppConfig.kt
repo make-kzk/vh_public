@@ -5,6 +5,7 @@ data class AppConfig(
     val databaseUser: String,
     val databasePassword: String,
     val webOrigin: String,
+    val webOrigins: List<String>,
     val frontendUrl: String,
     val sessionCookieName: String,
     val sessionDays: Long,
@@ -17,7 +18,8 @@ data class AppConfig(
                 databaseUrl = env("DATABASE_URL", "jdbc:postgresql://localhost:5432/vibehunt", dotEnv),
                 databaseUser = env("DATABASE_USER", "vibehunt", dotEnv),
                 databasePassword = env("DATABASE_PASSWORD", "vibehunt", dotEnv),
-                webOrigin = env("WEB_ORIGIN", "http://localhost:8081", dotEnv),
+                webOrigin = env("WEB_ORIGIN", "http://localhost:8081,http://localhost:8082", dotEnv),
+                webOrigins = parseOrigins(env("WEB_ORIGIN", "http://localhost:8081,http://localhost:8082", dotEnv)),
                 frontendUrl = env("FRONTEND_URL", "http://localhost:8081", dotEnv),
                 sessionCookieName = env("SESSION_COOKIE_NAME", "vibehunt_session", dotEnv),
                 sessionDays = env("SESSION_DAYS", "30", dotEnv).toLong(),
@@ -39,5 +41,8 @@ data class AppConfig(
         private fun resolve(name: String, dotEnv: Map<String, String>): String? =
             System.getenv(name)?.takeIf { it.isNotBlank() }
                 ?: dotEnv[name]?.takeIf { it.isNotBlank() }
+
+        private fun parseOrigins(raw: String): List<String> =
+            raw.split(',').map { it.trim() }.filter { it.isNotBlank() }
     }
 }

@@ -20,14 +20,16 @@ This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM
 
 ### Authentication (web MVP)
 
-VibeHunt uses **httpOnly session cookies** for local development (`AUTH_DEV_MODE=true`). Production auth is planned via **Supabase Auth** (JWT). The web client talks to `/api/auth/*` with cookies (webpack dev server proxies `/api` to Ktor on port 8080).
+VibeHunt uses **httpOnly session cookies** for local development (`AUTH_DEV_MODE=true`). Production auth is planned via **Supabase Auth** (JWT). Web clients talk to `/api/auth/*` with cookies (dev servers proxy `/api` to Ktor on port 8080).
 
 User role (`SEEKER` or `EMPLOYER`) is chosen once via `POST /api/auth/complete-registration` and cannot be changed afterward.
 
-1. Copy [`env.example`](./env.example) to `.env` (keep `AUTH_DEV_MODE=true` for local sign-in).
+1. Copy [`env.example`](./env.example) to `.env` (keep `AUTH_DEV_MODE=true` for local sign-in; include both origins in `WEB_ORIGIN` if you use Compose and React together).
 2. Start PostgreSQL: `docker compose up -d`
 3. Start the API: `./gradlew :server:run` (migrations run automatically via Flyway)
-4. Start the web app: `./gradlew :app:webApp:jsBrowserDevelopmentRun` → http://localhost:8081
+4. Start a web client:
+   - **Compose:** `./gradlew :app:webApp:jsBrowserDevelopmentRun` → http://localhost:8081
+   - **React + Tailwind:** `cd app/webReact && npm install && npm run dev` → http://localhost:8082 (**Node.js 20+** required; see [app/webReact/README.md](./app/webReact/README.md) if you see `Unexpected token '||='`)
 
 Database migrations are Kotlin classes (`BaseJavaMigration` + Exposed) under `server/src/main/kotlin/db/migration/`. If you already applied older SQL migrations locally, reset the database:
 
@@ -53,7 +55,8 @@ Use the run configurations provided by the run widget in your IDE's toolbar. You
   - Hot reload: `./gradlew :app:desktopApp:hotRun --auto`
   - Standard run: `./gradlew :app:desktopApp:run`
 - Server: `./gradlew :server:run`
-- Web app (auth MVP, JS only): `./gradlew :app:webApp:jsBrowserDevelopmentRun` → http://localhost:8081
+- Web app — Compose (auth MVP, JS only): `./gradlew :app:webApp:jsBrowserDevelopmentRun` → http://localhost:8081
+- Web app — React + Tailwind: `cd app/webReact && npm run dev` → http://localhost:8082
 - iOS app: open the [/app/iosApp](./app/iosApp) directory in Xcode and run it from there.
 
 ### Running tests

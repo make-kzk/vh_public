@@ -6,12 +6,12 @@ import io.ktor.server.plugins.cors.routing.*
 import jobs.vibehunt.config.AppConfig
 
 fun Application.configureCors(config: AppConfig) {
-    val origin = config.webOrigin
-    val hostWithPort = origin.removePrefix("http://").removePrefix("https://")
-    val scheme = if (origin.startsWith("https")) "https" else "http"
-
     install(CORS) {
-        allowHost(hostWithPort, schemes = listOf(scheme))
+        config.webOrigins.forEach { origin ->
+            val hostWithPort = origin.removePrefix("http://").removePrefix("https://")
+            val scheme = if (origin.startsWith("https")) "https" else "http"
+            allowHost(hostWithPort, schemes = listOf(scheme))
+        }
         allowCredentials = true
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
