@@ -12,7 +12,7 @@ kotlin {
             commonWebpackConfig {
                 devServer =
                     (devServer ?: KotlinWebpackConfig.DevServer()).copy(
-                        port = 8081,
+                        port = 8082,
                         proxy =
                             mutableListOf(
                                 KotlinWebpackConfig.DevServer.Proxy(

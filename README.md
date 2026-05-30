@@ -28,8 +28,8 @@ User role (`SEEKER` or `EMPLOYER`) is chosen once via `POST /api/auth/complete-r
 2. Start PostgreSQL: `docker compose up -d`
 3. Start the API: `./gradlew :server:run` (migrations run automatically via Flyway)
 4. Start a web client:
-   - **Compose:** `./gradlew :app:webApp:jsBrowserDevelopmentRun` → http://localhost:8081
-   - **React + Tailwind:** `cd app/webReact && npm install && npm run dev` → http://localhost:8082 (**Node.js 20+** required; see [app/webReact/README.md](./app/webReact/README.md) if you see `Unexpected token '||='`)
+   - **React + Tailwind:** `cd app/webReact && npm install && npm run dev` → http://localhost:8081 (**Node.js 20+** required; see [app/webReact/README.md](./app/webReact/README.md) if you see `Unexpected token '||='`)
+   - **Compose:** `./gradlew :app:webApp:jsBrowserDevelopmentRun` → http://localhost:8082
 
 Database migrations are Kotlin classes (`BaseJavaMigration` + Exposed) under `server/src/main/kotlin/db/migration/`. If you already applied older SQL migrations locally, reset the database:
 
@@ -55,8 +55,8 @@ Use the run configurations provided by the run widget in your IDE's toolbar. You
   - Hot reload: `./gradlew :app:desktopApp:hotRun --auto`
   - Standard run: `./gradlew :app:desktopApp:run`
 - Server: `./gradlew :server:run`
-- Web app — Compose (auth MVP, JS only): `./gradlew :app:webApp:jsBrowserDevelopmentRun` → http://localhost:8081
-- Web app — React + Tailwind: `cd app/webReact && npm run dev` → http://localhost:8082
+- Web app — React + Tailwind: `cd app/webReact && npm run dev` → http://localhost:8081
+- Web app — Compose (auth MVP, JS only): `./gradlew :app:webApp:jsBrowserDevelopmentRun` → http://localhost:8082
 - iOS app: open the [/app/iosApp](./app/iosApp) directory in Xcode and run it from there.
 
 ### Running tests
