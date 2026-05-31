@@ -16,7 +16,6 @@ export function RoleSelectionPage({
   errorMessage,
   onCompleteRegistration,
 }: RoleSelectionPageProps) {
-  const welcomeName = user.displayName != null ? `, ${user.displayName}` : ''
   const [role, setRole] = useState<UserRole>('SEEKER')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -45,11 +44,11 @@ export function RoleSelectionPage({
       <form className="flex w-full flex-col gap-4" onSubmit={handleSubmit}>
         <h1 className="text-center text-xl font-semibold">Завершите регистрацию</h1>
         <p className="text-center text-sm text-neutral-600">
-          Добро пожаловать{welcomeName}. Выберите тип аккаунта для {user.email} — его нельзя
+          Добро пожаловать. Выберите тип аккаунта для {user.email} — его нельзя
           будет изменить позже.
         </p>
         <p className="text-center text-sm text-neutral-500">
-          Имя, фамилию и название компании можно изменить позже в настройках.
+          Эти данные можно изменить в любое время.
         </p>
 
         <RoleToggle value={role} onChange={setRole} disabled={isBusy} />

@@ -40,8 +40,9 @@ fun Application.module() {
     val employerRepository = EmployerRepository()
     val referenceRepository = ReferenceRepository()
     val profileProvisioningService = ProfileProvisioningService(seekerRepository, employerRepository)
-    val sessionService = SessionService(config, sessionRepository, userRepository)
-    val userAuthService = UserAuthService(userRepository, profileProvisioningService)
+    val userAuthService =
+        UserAuthService(userRepository, profileProvisioningService, seekerRepository, employerRepository)
+    val sessionService = SessionService(config, sessionRepository, userRepository, userAuthService::withProfileName)
     val roleGuard = RoleGuard(config, sessionService)
     val seekerProfileService = SeekerProfileService(seekerRepository, referenceRepository)
     val employerProfileService = EmployerProfileService(employerRepository, referenceRepository)

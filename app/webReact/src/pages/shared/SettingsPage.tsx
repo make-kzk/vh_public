@@ -4,17 +4,18 @@ import { fetchSeekerProfile, updateSeekerProfile } from '../../api/seekerApi'
 import type { EmployerProfileDto, SeekerProfileDto } from '../../api/types'
 import { FormSection } from '../../components/FormSection'
 import { LoadingSpinner } from '../../components/LoadingSpinner'
-import { RoleToggle } from '../../components/RoleToggle'
 import { useAuth } from '../../hooks/useAuth'
 
 export function SettingsPage() {
-  const { state } = useAuth()
+  const { state, refreshSession, deleteAccount, isBusy } = useAuth()
   const [seekerProfile, setSeekerProfile] = useState<SeekerProfileDto | null>(null)
   const [employerProfile, setEmployerProfile] = useState<EmployerProfileDto | null>(null)
   const [profileLoading, setProfileLoading] = useState(true)
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileMessage, setProfileMessage] = useState<string | null>(null)
   const [profileError, setProfileError] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const role = state.kind === 'authenticated' ? state.user.role : null
 
   useEffect(() => {
@@ -59,11 +60,22 @@ export function SettingsPage() {
         })
         setEmployerProfile(updated)
       }
+      await refreshSession()
       setProfileMessage('Профиль сохранён')
     } catch (err) {
       setProfileError(err instanceof Error ? err.message : 'Ошибка сохранения')
     } finally {
       setProfileSaving(false)
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setDeleteError(null)
+    try {
+      await deleteAccount()
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Не удалось удалить аккаунт')
+      setDeleteConfirmOpen(false)
     }
   }
 
@@ -74,16 +86,7 @@ export function SettingsPage() {
         <p className="mt-1 text-sm text-neutral-600">Управление аккаунтом</p>
       </div>
 
-      <FormSection
-        title={user.role === 'SEEKER' ? 'Личные данные' : 'Компания'}
-        description="Эти данные можно изменить в любое время"
-      >
-        {user.role != null && (
-          <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-neutral-700">Тип аккаунта</span>
-            <RoleToggle value={user.role} onChange={() => {}} disabled />
-          </div>
-        )}
+      <FormSection title={user.role === 'SEEKER' ? 'Личные данные' : 'Компания'}>
         {profileLoading ? (
           <p className="text-sm text-neutral-500">Загрузка…</p>
         ) : (
@@ -213,17 +216,49 @@ export function SettingsPage() {
           Изменить пароль (скоро)
         </button>
       </FormSection>
-      <FormSection title="Удаление аккаунта" description="Раздел в разработке">
+      <FormSection
+        title="Удаление аккаунта"
+        description="Необратимое удаление всех данных"
+      >
         <p className="text-sm text-neutral-600">
-          Удаление аккаунта необратимо. Все ваши данные будут удалены без возможности восстановления.
+          Удаление аккаунта необратимо. Будут удалены профиль, сессии, опыт работы, образование,
+          навыки, опросы и все остальные связанные данные.
         </p>
-        <button
-          type="button"
-          disabled
-          className="self-start rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-400"
-        >
-          Удалить аккаунт (скоро)
-        </button>
+        {deleteError != null && <p className="text-sm text-red-600">{deleteError}</p>}
+        {!deleteConfirmOpen ? (
+          <button
+            type="button"
+            disabled={isBusy}
+            onClick={() => setDeleteConfirmOpen(true)}
+            className="self-start rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Удалить аккаунт
+          </button>
+        ) : (
+          <div className="flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+            <p className="text-sm font-medium text-red-900">
+              Вы уверены? Это действие нельзя отменить.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={isBusy}
+                onClick={() => void handleDeleteAccount()}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isBusy ? 'Удаление…' : 'Да, удалить навсегда'}
+              </button>
+              <button
+                type="button"
+                disabled={isBusy}
+                onClick={() => setDeleteConfirmOpen(false)}
+                className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        )}
       </FormSection>
     </div>
   )

@@ -39,7 +39,7 @@ fun Route.authRoutes(
                 }
             val sessionToken = sessionService.createSession(UUID.fromString(user.id))
             call.setSessionCookie(config, sessionToken)
-            call.respond(user)
+            call.respond(userAuthService.withProfileName(user))
         }
 
         get("/me") {
@@ -73,7 +73,30 @@ fun Route.authRoutes(
                 } catch (e: IllegalArgumentException) {
                     return@post call.respond(HttpStatusCode.BadRequest, mapOf("message" to (e.message ?: "Некорректные данные")))
                 }
-            call.respond(updated)
+            call.respond(userAuthService.withProfileName(updated))
+        }
+
+        delete("/account") {
+            val token =
+                call.request.cookies[config.sessionCookieName]
+                    ?: return@delete call.respond(HttpStatusCode.Unauthorized, "Не авторизован")
+            val user =
+                sessionService.resolveUser(token)
+                    ?: return@delete call.respond(HttpStatusCode.Unauthorized, "Не авторизован")
+            val userId =
+                try {
+                    java.util.UUID.fromString(user.id)
+                } catch (_: IllegalArgumentException) {
+                    return@delete call.respond(HttpStatusCode.BadRequest, mapOf("message" to "Некорректный id пользователя"))
+                }
+            sessionService.invalidate(token)
+            try {
+                userAuthService.deleteAccount(userId)
+            } catch (e: IllegalStateException) {
+                return@delete call.respond(HttpStatusCode.NotFound, mapOf("message" to (e.message ?: "Пользователь не найден")))
+            }
+            call.clearSessionCookie(config)
+            call.respond(HttpStatusCode.NoContent)
         }
     }
 }

@@ -13,6 +13,9 @@ export function HomePage({ user, onLogout }: HomePageProps) {
       <div className="flex flex-col gap-3">
         <h1 className="text-xl font-semibold">Вы вошли</h1>
         <p className="text-base text-neutral-700">
+          {user.profileName != null && user.profileName !== ''
+            ? `${user.profileName} · `
+            : ''}
           {user.email} · {displayRoleLabel(user.role)}
         </p>
         <button

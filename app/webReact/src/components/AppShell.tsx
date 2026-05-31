@@ -44,7 +44,12 @@ export function AppShell({ user, role, navItems, onLogout }: AppShellProps) {
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3">
-          <p className="truncate text-sm text-neutral-600">{user.email}</p>
+          <div className="min-w-0 truncate">
+            {user.profileName != null && user.profileName !== '' && (
+              <p className="truncate text-sm font-medium text-neutral-900">{user.profileName}</p>
+            )}
+            <p className="truncate text-sm text-neutral-600">{user.email}</p>
+          </div>
           <button
             type="button"
             onClick={onLogout}

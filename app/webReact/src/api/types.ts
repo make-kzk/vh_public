@@ -3,7 +3,7 @@ export type UserRole = 'SEEKER' | 'EMPLOYER'
 export interface AuthUserDto {
   id: string
   email: string
-  displayName?: string | null
+  profileName?: string | null
   role?: UserRole | null
 }
 

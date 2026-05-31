@@ -12,6 +12,7 @@ class SessionService(
     private val config: AppConfig,
     private val sessionRepository: SessionRepository,
     private val userRepository: UserRepository,
+    private val enrichUser: (AuthUserDto) -> AuthUserDto = { it },
 ) {
     private val secureRandom = SecureRandom()
 
@@ -24,7 +25,9 @@ class SessionService(
 
     fun resolveUser(token: String?) =
         token?.let { raw ->
-            sessionRepository.findUserIdByToken(raw)?.let { userRepository.findById(it) }
+            sessionRepository.findUserIdByToken(raw)?.let { userId ->
+                userRepository.findById(userId)?.let(enrichUser)
+            }
         }
 
     fun invalidate(token: String?) {

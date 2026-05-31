@@ -6,6 +6,7 @@ import jobs.vibehunt.db.tables.UsersTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -46,7 +47,6 @@ class UserRepository {
 
     fun create(
         email: String,
-        displayName: String?,
         authProvider: String,
         authSubject: String,
     ): AuthUserDto =
@@ -55,7 +55,6 @@ class UserRepository {
             val id =
                 UsersTable.insert {
                     it[UsersTable.email] = email
-                    it[UsersTable.displayName] = displayName
                     it[UsersTable.role] = null
                     it[UsersTable.oauthProvider] = authProvider
                     it[UsersTable.oauthSubject] = authSubject
@@ -64,7 +63,6 @@ class UserRepository {
             AuthUserDto(
                 id = id.toString(),
                 email = email,
-                displayName = displayName,
                 role = null,
             )
         }
@@ -79,12 +77,16 @@ class UserRepository {
             findById(userId)
         }
 
+    fun deleteById(userId: UUID): Boolean =
+        transaction {
+            UsersTable.deleteWhere { UsersTable.id eq userId } > 0
+        }
+
     private fun ResultRow.toDto(): AuthUserDto {
         val roleValue = this[UsersTable.role]
         return AuthUserDto(
             id = this[UsersTable.id].value.toString(),
             email = this[UsersTable.email],
-            displayName = this[UsersTable.displayName],
             role = roleValue?.let { UserRole.valueOf(it) },
         )
     }

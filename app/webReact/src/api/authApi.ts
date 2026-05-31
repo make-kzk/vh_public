@@ -60,3 +60,13 @@ export async function completeRegistration(
   }
   return (await response.json()) as AuthUserDto
 }
+
+export async function deleteAccount(): Promise<void> {
+  const response = await fetch('/api/auth/account', {
+    method: 'DELETE',
+    credentials: 'include',
+  })
+  if (!response.ok) {
+    await parseError(response, `Не удалось удалить аккаунт: ${response.status}`)
+  }
+}

@@ -37,7 +37,7 @@ fun RoleSelectionScreen(
                 textAlign = TextAlign.Center,
             )
             Text(
-                text = "Добро пожаловать${user.displayName?.let { ", $it" } ?: ""}. Этот выбор нельзя изменить для ${user.email}.",
+                text = "Добро пожаловать. Этот выбор нельзя изменить для ${user.email}.",
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )

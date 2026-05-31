@@ -23,6 +23,7 @@ interface AuthContextValue {
   signInDev: (email: string) => Promise<void>
   completeRegistration: (request: CompleteRegistrationRequest) => Promise<void>
   signOut: () => Promise<void>
+  deleteAccount: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -94,6 +95,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const deleteAccount = useCallback(async () => {
+    setIsBusy(true)
+    setErrorMessage(null)
+    try {
+      await authApi.deleteAccount()
+      setState({ kind: 'unauthenticated' })
+    } catch (e) {
+      setErrorMessage(e instanceof Error ? e.message : 'Не удалось удалить аккаунт')
+      throw e
+    } finally {
+      setIsBusy(false)
+    }
+  }, [])
+
   return (
     <AuthContext.Provider
       value={{
@@ -104,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signInDev,
         completeRegistration,
         signOut,
+        deleteAccount,
       }}
     >
       {children}
