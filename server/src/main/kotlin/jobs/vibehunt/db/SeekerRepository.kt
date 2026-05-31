@@ -26,14 +26,20 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 class SeekerRepository {
-    fun createForUser(userId: UUID): SeekerProfileDto =
+    fun createForUser(
+        userId: UUID,
+        firstName: String = "",
+        lastName: String = "",
+        middleName: String? = null,
+    ): SeekerProfileDto =
         transaction {
             val now = OffsetDateTime.now()
             val id =
                 SeekersTable.insert {
                     it[SeekersTable.userId] = userId
-                    it[firstName] = ""
-                    it[lastName] = ""
+                    it[SeekersTable.firstName] = firstName.trim()
+                    it[SeekersTable.lastName] = lastName.trim()
+                    it[SeekersTable.middleName] = middleName?.trim()?.ifBlank { null }
                     it[updatedAt] = now
                 }[SeekersTable.id].value
             findById(id)!!

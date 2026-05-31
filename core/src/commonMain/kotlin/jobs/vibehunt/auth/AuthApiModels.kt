@@ -10,6 +10,10 @@ data class DevLoginRequest(
 @Serializable
 data class CompleteRegistrationRequest(
     val role: UserRole,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val middleName: String? = null,
+    val companyName: String? = null,
 )
 
 @Serializable

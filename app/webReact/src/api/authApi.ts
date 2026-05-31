@@ -3,7 +3,6 @@ import type {
   CompleteRegistrationRequest,
   DevLoginRequest,
   MeResponse,
-  UserRole,
 } from './types'
 
 const jsonHeaders = { 'Content-Type': 'application/json' }
@@ -47,8 +46,9 @@ export async function logout(): Promise<void> {
   })
 }
 
-export async function completeRegistration(role: UserRole): Promise<AuthUserDto> {
-  const body: CompleteRegistrationRequest = { role }
+export async function completeRegistration(
+  body: CompleteRegistrationRequest,
+): Promise<AuthUserDto> {
   const response = await fetch('/api/auth/complete-registration', {
     method: 'POST',
     credentials: 'include',

@@ -51,7 +51,11 @@ fun Route.seekerRoutes(
         patch("/me") {
             val user = roleGuard.requireRole(call, UserRole.SEEKER) ?: return@patch
             val body = call.receive<UpdateSeekerProfileRequest>()
-            seekerProfileService.updateProfile(user.id, body)
+            try {
+                seekerProfileService.updateProfile(user.id, body)
+            } catch (e: IllegalArgumentException) {
+                return@patch call.respond(HttpStatusCode.BadRequest, mapOf("message" to (e.message ?: "Некорректные данные")))
+            }
             call.respond(seekerProfileService.getOrCreateSeeker(user.id))
         }
         get("/experience") {

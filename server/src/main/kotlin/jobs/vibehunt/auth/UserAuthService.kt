@@ -20,17 +20,54 @@ class UserAuthService(
         )
     }
 
-    fun completeRegistration(userId: UUID, role: UserRole): AuthUserDto {
+    fun completeRegistration(userId: UUID, request: CompleteRegistrationRequest): AuthUserDto {
         val user =
             userRepository.findById(userId)
                 ?: error("Пользователь не найден")
         if (user.role != null) {
             error("Роль уже выбрана и не может быть изменена")
         }
-        return userRepository.setRole(userId, role)
-            ?.also { profileProvisioningService.provisionForRole(userId, role) }
+        val profileData = validateRegistrationProfile(request)
+        return userRepository.setRole(userId, request.role)
+            ?.also {
+                profileProvisioningService.provisionForRole(
+                    userId = userId,
+                    role = request.role,
+                    firstName = profileData.firstName,
+                    lastName = profileData.lastName,
+                    middleName = profileData.middleName,
+                    companyName = profileData.companyName,
+                )
+            }
             ?: error("Не удалось установить роль")
     }
+
+    private data class RegistrationProfileData(
+        val firstName: String = "",
+        val lastName: String = "",
+        val middleName: String? = null,
+        val companyName: String = "",
+    )
+
+    private fun validateRegistrationProfile(request: CompleteRegistrationRequest): RegistrationProfileData =
+        when (request.role) {
+            UserRole.SEEKER -> {
+                val firstName = request.firstName?.trim().orEmpty()
+                val lastName = request.lastName?.trim().orEmpty()
+                require(firstName.isNotBlank()) { "Укажите имя" }
+                require(lastName.isNotBlank()) { "Укажите фамилию" }
+                RegistrationProfileData(
+                    firstName = firstName,
+                    lastName = lastName,
+                    middleName = request.middleName?.trim()?.ifBlank { null },
+                )
+            }
+            UserRole.EMPLOYER -> {
+                val companyName = request.companyName?.trim().orEmpty()
+                require(companyName.isNotBlank()) { "Укажите название компании" }
+                RegistrationProfileData(companyName = companyName)
+            }
+        }
 
     private companion object {
         const val DEV_PROVIDER = "dev"

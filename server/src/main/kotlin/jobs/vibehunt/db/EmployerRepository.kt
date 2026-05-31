@@ -24,13 +24,13 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 class EmployerRepository {
-    fun createForUser(userId: UUID): EmployerProfileDto =
+    fun createForUser(userId: UUID, name: String = ""): EmployerProfileDto =
         transaction {
             val now = OffsetDateTime.now()
             val id =
                 EmployersTable.insert {
                     it[EmployersTable.userId] = userId
-                    it[name] = ""
+                    it[EmployersTable.name] = name.trim()
                     it[updatedAt] = now
                 }[EmployersTable.id].value
             findById(id)!!

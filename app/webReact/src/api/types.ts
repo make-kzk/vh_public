@@ -13,6 +13,10 @@ export interface DevLoginRequest {
 
 export interface CompleteRegistrationRequest {
   role: UserRole
+  firstName?: string | null
+  lastName?: string | null
+  middleName?: string | null
+  companyName?: string | null
 }
 
 export interface MeResponse {

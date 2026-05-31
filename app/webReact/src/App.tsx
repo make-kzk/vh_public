@@ -50,8 +50,7 @@ function AuthFlow() {
             user={state.user}
             isBusy={isBusy}
             errorMessage={errorMessage}
-            onSelectSeeker={() => void completeRegistration('SEEKER')}
-            onSelectEmployer={() => void completeRegistration('EMPLOYER')}
+            onCompleteRegistration={(request) => void completeRegistration(request)}
           />
         )
       case 'authenticated':
@@ -79,8 +78,7 @@ function AuthFlow() {
           user={state.user}
           isBusy={isBusy}
           errorMessage={errorMessage}
-          onSelectSeeker={() => void completeRegistration('SEEKER')}
-          onSelectEmployer={() => void completeRegistration('EMPLOYER')}
+          onCompleteRegistration={(request) => void completeRegistration(request)}
         />
       )
     case 'authenticated':

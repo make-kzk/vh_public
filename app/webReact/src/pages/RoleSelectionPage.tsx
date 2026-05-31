@@ -1,60 +1,116 @@
-import type { AuthUserDto } from '../api/types'
+import { useState } from 'react'
+import type { AuthUserDto, CompleteRegistrationRequest, UserRole } from '../api/types'
 import { AdaptiveLayout } from '../components/AdaptiveLayout'
+import { RoleToggle } from '../components/RoleToggle'
 
 interface RoleSelectionPageProps {
   user: AuthUserDto
   isBusy: boolean
   errorMessage: string | null
-  onSelectSeeker: () => void
-  onSelectEmployer: () => void
+  onCompleteRegistration: (request: CompleteRegistrationRequest) => void
 }
 
 export function RoleSelectionPage({
   user,
   isBusy,
   errorMessage,
-  onSelectSeeker,
-  onSelectEmployer,
+  onCompleteRegistration,
 }: RoleSelectionPageProps) {
   const welcomeName = user.displayName != null ? `, ${user.displayName}` : ''
+  const [role, setRole] = useState<UserRole>('SEEKER')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [middleName, setMiddleName] = useState('')
+  const [companyName, setCompanyName] = useState('')
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (role === 'SEEKER') {
+      onCompleteRegistration({
+        role,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        middleName: middleName.trim() || null,
+      })
+      return
+    }
+    onCompleteRegistration({
+      role,
+      companyName: companyName.trim(),
+    })
+  }
 
   return (
     <AdaptiveLayout>
-      <div className="flex flex-col items-center gap-4">
-        <h1 className="text-center text-xl font-semibold">Выберите тип аккаунта</h1>
+      <form className="flex w-full flex-col gap-4" onSubmit={handleSubmit}>
+        <h1 className="text-center text-xl font-semibold">Завершите регистрацию</h1>
         <p className="text-center text-sm text-neutral-600">
-          Добро пожаловать{welcomeName}. Этот выбор нельзя изменить для {user.email}.
+          Добро пожаловать{welcomeName}. Выберите тип аккаунта для {user.email} — его нельзя
+          будет изменить позже.
         </p>
+        <p className="text-center text-sm text-neutral-500">
+          Имя, фамилию и название компании можно изменить позже в настройках.
+        </p>
+
+        <RoleToggle value={role} onChange={setRole} disabled={isBusy} />
+
+        {role === 'SEEKER' ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-neutral-700">Имя</span>
+              <input
+                required
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                disabled={isBusy}
+                className="rounded-lg border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-50"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-neutral-700">Фамилия</span>
+              <input
+                required
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                disabled={isBusy}
+                className="rounded-lg border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-50"
+              />
+            </label>
+            <label className="flex flex-col gap-1 sm:col-span-2">
+              <span className="text-sm font-medium text-neutral-700">Отчество</span>
+              <input
+                value={middleName}
+                onChange={(e) => setMiddleName(e.target.value)}
+                disabled={isBusy}
+                className="rounded-lg border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-50"
+              />
+            </label>
+          </div>
+        ) : (
+          <label className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-neutral-700">Название компании</span>
+            <input
+              required
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              disabled={isBusy}
+              className="rounded-lg border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-50"
+            />
+          </label>
+        )}
+
         {errorMessage != null && (
           <p className="w-full text-sm text-red-600">{errorMessage}</p>
         )}
-        {isBusy ? (
-          <div className="flex justify-center py-2">
-            <div
-              className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-neutral-900"
-              role="status"
-              aria-label="Загрузка"
-            />
-          </div>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={onSelectSeeker}
-              className="w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800"
-            >
-              Ищу работу
-            </button>
-            <button
-              type="button"
-              onClick={onSelectEmployer}
-              className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
-            >
-              Нанимаю сотрудников
-            </button>
-          </>
-        )}
-      </div>
+
+        <button
+          type="submit"
+          disabled={isBusy}
+          className="w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isBusy ? 'Создание аккаунта…' : 'Создать аккаунт'}
+        </button>
+      </form>
     </AdaptiveLayout>
   )
 }

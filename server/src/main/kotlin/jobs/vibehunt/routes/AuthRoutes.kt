@@ -67,7 +67,12 @@ fun Route.authRoutes(
                 return@post call.respond(HttpStatusCode.Conflict, "Роль уже выбрана")
             }
             val body = call.receive<CompleteRegistrationRequest>()
-            val updated = userAuthService.completeRegistration(userId, body.role)
+            val updated =
+                try {
+                    userAuthService.completeRegistration(userId, body)
+                } catch (e: IllegalArgumentException) {
+                    return@post call.respond(HttpStatusCode.BadRequest, mapOf("message" to (e.message ?: "Некорректные данные")))
+                }
             call.respond(updated)
         }
     }

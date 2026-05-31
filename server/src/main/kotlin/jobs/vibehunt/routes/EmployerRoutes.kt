@@ -28,7 +28,11 @@ fun Route.employerRoutes(
         patch("/me") {
             val user = roleGuard.requireRole(call, UserRole.EMPLOYER) ?: return@patch
             val body = call.receive<UpdateEmployerProfileRequest>()
-            employerProfileService.updateProfile(user.id, body)
+            try {
+                employerProfileService.updateProfile(user.id, body)
+            } catch (e: IllegalArgumentException) {
+                return@patch call.respond(HttpStatusCode.BadRequest, mapOf("message" to (e.message ?: "Некорректные данные")))
+            }
             call.respond(employerProfileService.getOrCreateEmployer(user.id))
         }
         get("/job-profiles") {

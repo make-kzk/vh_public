@@ -20,16 +20,28 @@ class ProfileProvisioningService(
     private val seekerRepository: SeekerRepository,
     private val employerRepository: EmployerRepository,
 ) {
-    fun provisionForRole(userId: UUID, role: UserRole) {
+    fun provisionForRole(
+        userId: UUID,
+        role: UserRole,
+        firstName: String = "",
+        lastName: String = "",
+        middleName: String? = null,
+        companyName: String = "",
+    ) {
         when (role) {
             UserRole.SEEKER -> {
                 if (seekerRepository.findByUserId(userId) == null) {
-                    seekerRepository.createForUser(userId)
+                    seekerRepository.createForUser(
+                        userId = userId,
+                        firstName = firstName,
+                        lastName = lastName,
+                        middleName = middleName,
+                    )
                 }
             }
             UserRole.EMPLOYER -> {
                 if (employerRepository.findByUserId(userId) == null) {
-                    employerRepository.createForUser(userId)
+                    employerRepository.createForUser(userId, name = companyName)
                 }
             }
         }
@@ -44,6 +56,10 @@ class SeekerProfileService(
         seekerRepository.findByUserId(userId) ?: seekerRepository.createForUser(userId)
 
     fun updateProfile(userId: UUID, request: UpdateSeekerProfileRequest) {
+        val firstName = request.firstName.trim()
+        val lastName = request.lastName.trim()
+        require(firstName.isNotBlank()) { "Укажите имя" }
+        require(lastName.isNotBlank()) { "Укажите фамилию" }
         val seeker = getOrCreateSeeker(userId)
         seekerRepository.updateProfile(seeker.id, request)
             ?: error("Не удалось обновить профиль")
@@ -148,6 +164,8 @@ class EmployerProfileService(
         employerRepository.findByUserId(userId) ?: employerRepository.createForUser(userId)
 
     fun updateProfile(userId: UUID, request: jobs.vibehunt.models.UpdateEmployerProfileRequest) {
+        val name = request.name.trim()
+        require(name.isNotBlank()) { "Укажите название компании" }
         val employer = getOrCreateEmployer(userId)
         employerRepository.updateProfile(employer.id, request)
             ?: error("Не удалось обновить профиль компании")

@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react'
 import * as authApi from '../api/authApi'
-import type { AuthState, AuthUserDto, UserRole } from '../api/types'
+import type { AuthState, AuthUserDto, CompleteRegistrationRequest } from '../api/types'
 
 function userToState(user: AuthUserDto | null): AuthState {
   if (user == null) return { kind: 'unauthenticated' }
@@ -21,7 +21,7 @@ interface AuthContextValue {
   isBusy: boolean
   refreshSession: () => Promise<void>
   signInDev: (email: string) => Promise<void>
-  completeRegistration: (role: UserRole) => Promise<void>
+  completeRegistration: (request: CompleteRegistrationRequest) => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -69,11 +69,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const completeRegistration = useCallback(async (role: UserRole) => {
+  const completeRegistration = useCallback(async (request: CompleteRegistrationRequest) => {
     setIsBusy(true)
     setErrorMessage(null)
     try {
-      const user = await authApi.completeRegistration(role)
+      const user = await authApi.completeRegistration(request)
       setState({ kind: 'authenticated', user })
     } catch (e) {
       setErrorMessage(e instanceof Error ? e.message : 'Не удалось завершить регистрацию')
