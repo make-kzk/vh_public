@@ -1,6 +1,7 @@
+# Use only when service Root Directory is /app/webReact (Dashboard). Prefer /deploy/railway.frontend.toml + repo root.
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "app/webReact/Dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 restartPolicyType = "ON_FAILURE"

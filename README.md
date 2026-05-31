@@ -20,7 +20,7 @@ This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM
 
 ### Railway deployment
 
-Deploy the API and React web client to Railway with Postgres: see [docs/railway.md](./docs/railway.md).
+Deploy the API and React web client to Railway with Postgres: see [docs/railway.md](./docs/railway.md). CLI: `.\scripts\railway-deploy.ps1 all` (after `railway link`).
 
 ### Authentication (web MVP)
 

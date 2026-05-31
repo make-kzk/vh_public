@@ -1,103 +1,118 @@
 # Deploying VibeHunt on Railway
 
-This project runs as **three services** in one Railway project: Postgres (already provisioned), a **backend** (Ktor API), and a **frontend** (React + nginx). The browser only uses the frontend public URL; nginx proxies `/api/*` to the backend over Railway private networking.
+Three services in one Railway project: **Postgres**, **backend** (Ktor API), **frontend** (React + nginx). Users open only the frontend URL; nginx proxies `/api/*` to the backend over Railway private networking (enabled by default — no toggle in the UI).
 
 ## Architecture
 
-| Service | Repository root directory | Config file (absolute from repo root) |
-|---------|---------------------------|----------------------------------------|
-| Backend | **Empty / repo root** | `/deploy/railway.backend.toml` |
-| Frontend | `/app/webReact` | `/app/webReact/railway.toml` |
-| Postgres | (managed) | — |
+| Service | Root Directory | Config file (from repo root) |
+|---------|----------------|--------------------------------|
+| Backend | **empty** (repo root) | `/railway.toml` or `/deploy/railway.backend.toml` |
+| Frontend | **empty** (repo root) | `/deploy/railway.frontend.toml` |
+| Postgres | — | — |
 
-The backend **must** build from the repository root because `:server` depends on `:core`. Do not set the backend root directory to `server/`.
+Both app images build from the **repository root** (backend needs `:core` + `:server`; frontend uses `deploy/Dockerfile.webReact` with `app/webReact/` paths).
 
-## First-time setup
+Do **not** use Railpack/Nixpacks auto-detect for the backend — use `builder = "DOCKERFILE"` in the config file above.
 
-### 1. Backend service
+## Dashboard setup (one-time)
 
-1. In your Railway project: **New → GitHub Repo** (this repository).
-2. Name the service e.g. `backend`.
-3. **Settings → Root Directory**: leave empty (repository root).
-4. **Settings → Config file**: `/deploy/railway.backend.toml`
-5. **Settings → Watch paths** (optional, reduces noise):
-   - `/server/**`
-   - `/core/**`
-   - `/deploy/**`
-   - `/gradle/**`
-   - `/settings.gradle.kts`
-   - `/build.gradle.kts`
-   - `/gradle.properties`
-6. **Variables**:
+### Backend
+
+1. Service name e.g. `backend` (Empty Service or GitHub repo).
+2. **Settings → Root Directory**: leave **empty**.
+3. **Settings → Config file**: `/railway.toml` (or `/deploy/railway.backend.toml`).
+4. **Variables**:
 
    | Variable | Value |
    |----------|--------|
-   | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
-   | `WEB_ORIGIN` | `https://${{Frontend.RAILWAY_PUBLIC_DOMAIN}}` |
-   | `FRONTEND_URL` | `https://${{Frontend.RAILWAY_PUBLIC_DOMAIN}}` |
-   | `AUTH_DEV_MODE` | `true` for staging, `false` when dev login should be off |
+   | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (use your Postgres service name) |
+   | `WEB_ORIGIN` | `https://${{frontend.RAILWAY_PUBLIC_DOMAIN}}` (after frontend has a domain) |
+   | `FRONTEND_URL` | same as `WEB_ORIGIN` |
+   | `AUTH_DEV_MODE` | `true` (staging) or `false` (production) |
 
-7. Enable **Private Networking** for this service.
-8. Deploy and wait for a successful start (Flyway runs on boot).
+5. Public domain optional (health checks can use generated domain or private URL).
 
-### 2. Frontend service
+### Frontend
 
-1. **New → GitHub Repo** (same repository).
-2. Name the service e.g. `frontend`.
-3. **Settings → Root Directory**: `/app/webReact`
-4. **Settings → Config file**: `/app/webReact/railway.toml`
-5. **Settings → Watch paths**: `/app/webReact/**`
-6. **Variables**:
+1. Service name e.g. `frontend`.
+2. **Settings → Root Directory**: leave **empty** (not `/app/webReact` when using `/deploy/railway.frontend.toml`).
+3. **Settings → Config file**: `/deploy/railway.frontend.toml`.
+4. **Variables**:
 
    | Variable | Value |
    |----------|--------|
-   | `BACKEND_UPSTREAM` | `${{Backend.RAILWAY_PRIVATE_DOMAIN}}:${{Backend.PORT}}` |
+   | `BACKEND_UPSTREAM` | `${{backend.RAILWAY_PRIVATE_DOMAIN}}:${{backend.PORT}}` |
 
-   Replace `Backend` with your backend service name if different.
+   Use exact backend service name in `${{...}}`.
 
-7. Enable **Private Networking**.
-8. **Settings → Networking**: generate a public domain.
+5. **Networking → Public Networking**: **Generate Domain** (required for users).
 
-### 3. Wire origins
+### After frontend has a URL
 
-After the frontend has a public domain, ensure the backend has:
+Set backend `WEB_ORIGIN` and `FRONTEND_URL`, then redeploy backend.
 
-- `WEB_ORIGIN` = `https://<your-frontend-domain>`
-- `FRONTEND_URL` = same URL
+## Deploy with Railway CLI
 
-Redeploy the backend if you added the frontend domain after the first backend deploy.
+```powershell
+cd C:\path\to\vibehunt
+railway login
+railway link    # project + environment; repeat with railway service link backend / frontend as needed
+```
+
+Deploy (service names must match your Railway services):
+
+```powershell
+.\scripts\railway-deploy.ps1 backend
+.\scripts\railway-deploy.ps1 frontend
+# or
+.\scripts\railway-deploy.ps1 all
+```
+
+Linux/macOS: `./scripts/railway-deploy.sh all`
+
+Manual:
+
+```powershell
+railway up --service backend
+railway up --service frontend
+```
+
+CLI uploads from repo root and respects `.gitignore`. Docker builds use `.dockerignore` (includes `app/webReact` for the frontend image).
 
 ## Deploy order
 
-1. Postgres (already running)
-2. Backend (migrations + `/health`)
-3. Frontend (static assets + `/api` proxy)
-4. Update backend `WEB_ORIGIN` / `FRONTEND_URL` if needed
+1. Postgres
+2. Backend (`/health`, Flyway in logs)
+3. Frontend (public domain + `BACKEND_UPSTREAM`)
+4. Backend `WEB_ORIGIN` / `FRONTEND_URL` if not set via references
 
 ## Verification
 
 | Check | How |
 |-------|-----|
 | API health | `GET https://<backend-domain>/health` → `{"status":"ok"}` |
-| Frontend | Open `https://<frontend-domain>/` |
-| API via proxy | Dev login on frontend when `AUTH_DEV_MODE=true`; session cookie is set on the **frontend** host |
-| Logs | Backend should show Flyway migration success on startup |
-
-## Local vs Railway
-
-- Containers do **not** read `.env` from the repo; set variables in Railway only (except local dev).
-- Railway sets `PORT` for both services; the API and nginx entrypoint use it.
-- Railway Postgres provides `DATABASE_URL` as `postgresql://...`; the server converts it to JDBC with `sslmode=require`.
-- Cookies use `Secure` when `FRONTEND_URL` or `WEB_ORIGIN` uses `https://`, or when `COOKIE_SECURE=true`.
+| Frontend | `https://<frontend-domain>/` |
+| API via proxy | Dev login when `AUTH_DEV_MODE=true` |
+| Build | Logs show **Dockerfile**, not **Railpack** |
 
 ## Troubleshooting
 
-**Backend build fails** — Confirm root directory is repo root, not `server/`. Check build logs for Gradle errors.
+**Backend uses Railpack / `secret … not found`** — Config file not set or wrong. Set **Config file** to `/railway.toml`, redeploy. Do not rely on Java auto-detect.
 
-**Frontend: `BACKEND_UPSTREAM is required`** — Set `BACKEND_UPSTREAM` on the frontend service and enable private networking on both services.
+**Frontend: `package.json` not found** — Wrong Dockerfile context. Use `/deploy/railway.frontend.toml`, **empty** Root Directory, and `deploy/Dockerfile.webReact`. Old setup used `app/webReact/Dockerfile` with repo root context.
 
-**Database connection errors** — Confirm `DATABASE_URL` references the Postgres service. Check SSL: JDBC URL should include `sslmode=require` (handled automatically).
+**`BACKEND_UPSTREAM is required`** — Set variable on frontend; fix `${{backend...}}` service name.
 
-**401 / no session after login** — Ensure `WEB_ORIGIN` matches the frontend HTTPS URL exactly (no trailing slash). Cookies need HTTPS in production (`Secure` flag).
+**Database errors** — `DATABASE_URL=${{Postgres.DATABASE_URL}}`; SSL handled in app code.
 
-**CORS errors** — With the nginx proxy, the browser calls same-origin `/api`; CORS should not apply. If you call the backend public URL directly from the browser, add that origin to `WEB_ORIGIN`.
+**401 after login** — `WEB_ORIGIN` must match frontend URL exactly (`https://`, no trailing slash).
+
+## Alternative: frontend root `/app/webReact`
+
+If Root Directory is `/app/webReact` and config is `/app/webReact/railway.toml`, `dockerfilePath` must be `Dockerfile` (not `app/webReact/Dockerfile`). Prefer the `/deploy/railway.frontend.toml` layout above for CLI deploys.
+
+## Local vs Railway
+
+- No `.env` in containers; set variables in Railway.
+- Railway sets `PORT` for both services.
+- `DATABASE_URL` from Postgres is `postgresql://...`; server adds JDBC `sslmode=require`.

@@ -1,0 +1,9 @@
+# Backend (Ktor API) — build from repository root. Link this file in the backend service:
+# Settings → Config file: /railway.toml  (or /deploy/railway.backend.toml — same [build]/[deploy])
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "deploy/Dockerfile.server"
+
+[deploy]
+healthcheckPath = "/health"
+restartPolicyType = "ON_FAILURE"

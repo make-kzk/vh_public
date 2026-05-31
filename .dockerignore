@@ -4,8 +4,10 @@
 **/build/
 .kotlin/
 
-# Frontend and mobile (not needed for API image)
-app/
+# Other app targets (keep app/webReact for deploy/Dockerfile.webReact)
+app/*
+!app/webReact
+!app/webReact/**
 
 # Node
 node_modules/
