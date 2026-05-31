@@ -1,11 +1,11 @@
-import type { AuthUserDto } from '../../api/types'
 import { FormSection } from '../../components/FormSection'
+import { LoadingSpinner } from '../../components/LoadingSpinner'
+import { useAuth } from '../../hooks/useAuth'
 
-interface SettingsPageProps {
-  user: AuthUserDto
-}
-
-export function SettingsPage({ user }: SettingsPageProps) {
+export function SettingsPage() {
+  const { state } = useAuth()
+  if (state.kind !== 'authenticated') return <LoadingSpinner />
+  const { user } = state
   return (
     <div className="flex flex-col gap-6">
       <div>

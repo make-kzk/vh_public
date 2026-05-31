@@ -2,7 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import { AppShell } from './components/AppShell'
 import { LoadingSpinner } from './components/LoadingSpinner'
 import { ProtectedRoute } from './components/ProtectedRoute'
-import { useAuth } from './hooks/useAuth'
+import { AuthProvider, useAuth } from './hooks/useAuth'
 import { EmployerCandidatesPage } from './pages/employer/EmployerCandidatesPage'
 import { EmployerCompanyPage } from './pages/employer/EmployerCompanyPage'
 import { EmployerDashboardPage } from './pages/employer/EmployerDashboardPage'
@@ -90,37 +90,39 @@ function AuthFlow() {
 
 function SeekerLayout() {
   const { state, signOut } = useAuth()
-  if (state.kind !== 'authenticated') return <LoadingSpinner />
+  if (state.kind === 'loading') return <LoadingSpinner />
   return (
     <ProtectedRoute state={state} requiredRole="SEEKER">
-      <AppShell
-        user={state.user}
-        role="SEEKER"
-        navItems={SEEKER_NAV}
-        onLogout={() => void signOut()}
-      />
+      {state.kind === 'authenticated' ? (
+        <AppShell
+          user={state.user}
+          role="SEEKER"
+          navItems={SEEKER_NAV}
+          onLogout={() => void signOut()}
+        />
+      ) : null}
     </ProtectedRoute>
   )
 }
 
 function EmployerLayout() {
   const { state, signOut } = useAuth()
-  if (state.kind !== 'authenticated') return <LoadingSpinner />
+  if (state.kind === 'loading') return <LoadingSpinner />
   return (
     <ProtectedRoute state={state} requiredRole="EMPLOYER">
-      <AppShell
-        user={state.user}
-        role="EMPLOYER"
-        navItems={EMPLOYER_NAV}
-        onLogout={() => void signOut()}
-      />
+      {state.kind === 'authenticated' ? (
+        <AppShell
+          user={state.user}
+          role="EMPLOYER"
+          navItems={EMPLOYER_NAV}
+          onLogout={() => void signOut()}
+        />
+      ) : null}
     </ProtectedRoute>
   )
 }
 
 function AppRoutes() {
-  const { state } = useAuth()
-
   return (
     <Routes>
       <Route path="/" element={<AuthFlow />} />
@@ -130,32 +132,14 @@ function AppRoutes() {
         <Route path="personality" element={<SeekerPersonalityPage />} />
         <Route path="profile" element={<SeekerProfilePage />} />
         <Route path="positions" element={<SeekerPositionsPage />} />
-        <Route
-          path="settings"
-          element={
-            state.kind === 'authenticated' ? (
-              <SettingsPage user={state.user} />
-            ) : (
-              <LoadingSpinner />
-            )
-          }
-        />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
       <Route path="/employer" element={<EmployerLayout />}>
         <Route index element={<EmployerDashboardPage />} />
         <Route path="company" element={<EmployerCompanyPage />} />
         <Route path="profiles" element={<EmployerProfilesPage />} />
         <Route path="profiles/:id/candidates" element={<EmployerCandidatesPage />} />
-        <Route
-          path="settings"
-          element={
-            state.kind === 'authenticated' ? (
-              <SettingsPage user={state.user} />
-            ) : (
-              <LoadingSpinner />
-            )
-          }
-        />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -165,7 +149,9 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </BrowserRouter>
   )
 }

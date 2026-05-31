@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react'
 import * as authApi from '../api/authApi'
 import type { AuthState, AuthUserDto, UserRole } from '../api/types'
 
@@ -8,7 +15,19 @@ function userToState(user: AuthUserDto | null): AuthState {
   return { kind: 'authenticated', user }
 }
 
-export function useAuth() {
+interface AuthContextValue {
+  state: AuthState
+  errorMessage: string | null
+  isBusy: boolean
+  refreshSession: () => Promise<void>
+  signInDev: (email: string) => Promise<void>
+  completeRegistration: (role: UserRole) => Promise<void>
+  signOut: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null)
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ kind: 'loading' })
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
@@ -75,13 +94,27 @@ export function useAuth() {
     }
   }, [])
 
-  return {
-    state,
-    errorMessage,
-    isBusy,
-    refreshSession,
-    signInDev,
-    completeRegistration,
-    signOut,
+  return (
+    <AuthContext.Provider
+      value={{
+        state,
+        errorMessage,
+        isBusy,
+        refreshSession,
+        signInDev,
+        completeRegistration,
+        signOut,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuth(): AuthContextValue {
+  const context = useContext(AuthContext)
+  if (context == null) {
+    throw new Error('useAuth must be used within AuthProvider')
   }
+  return context
 }
