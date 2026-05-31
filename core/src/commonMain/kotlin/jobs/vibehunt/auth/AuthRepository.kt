@@ -7,5 +7,5 @@ interface AuthRepository {
 
     suspend fun logout()
 
-    suspend fun completeRegistration(role: UserRole): AuthUserDto
+    suspend fun completeRegistration(email: String, role: UserRole): AuthUserDto
 }

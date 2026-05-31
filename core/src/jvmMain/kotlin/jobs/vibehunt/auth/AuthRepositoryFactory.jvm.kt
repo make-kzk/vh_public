@@ -10,6 +10,6 @@ private class UnsupportedAuthRepository : AuthRepository {
 
     override suspend fun logout() {}
 
-    override suspend fun completeRegistration(role: UserRole): AuthUserDto =
+    override suspend fun completeRegistration(email: String, role: UserRole): AuthUserDto =
         throw UnsupportedOperationException("Auth is web-only in MVP")
 }

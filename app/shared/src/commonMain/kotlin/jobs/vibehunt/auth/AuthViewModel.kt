@@ -66,11 +66,12 @@ class AuthViewModel(
     }
 
     fun completeRegistration(role: UserRole) {
+        val pending = _state.value as? AuthState.NeedsRegistration ?: return
         viewModelScope.launch {
             _isBusy.value = true
             _errorMessage.value = null
             try {
-                val user = repository.completeRegistration(role)
+                val user = repository.completeRegistration(pending.user.email, role)
                 _state.value = AuthState.Authenticated(user)
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Не удалось завершить регистрацию"

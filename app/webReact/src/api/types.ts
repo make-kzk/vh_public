@@ -12,6 +12,7 @@ export interface DevLoginRequest {
 }
 
 export interface CompleteRegistrationRequest {
+  email?: string | null
   role: UserRole
   firstName?: string | null
   lastName?: string | null

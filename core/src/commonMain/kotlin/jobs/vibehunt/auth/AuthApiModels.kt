@@ -9,6 +9,7 @@ data class DevLoginRequest(
 
 @Serializable
 data class CompleteRegistrationRequest(
+    val email: String? = null,
     val role: UserRole,
     val firstName: String? = null,
     val lastName: String? = null,

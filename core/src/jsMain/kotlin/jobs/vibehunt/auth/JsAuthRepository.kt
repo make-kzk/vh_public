@@ -29,11 +29,11 @@ class JsAuthRepository(
         httpClient.authPost("/api/auth/logout")
     }
 
-    override suspend fun completeRegistration(role: UserRole): AuthUserDto {
+    override suspend fun completeRegistration(email: String, role: UserRole): AuthUserDto {
         val response =
             httpClient.authPost(
                 "/api/auth/complete-registration",
-                CompleteRegistrationRequest(role = role),
+                CompleteRegistrationRequest(email = email, role = role),
             )
         if (!response.status.isSuccess()) {
             throw AuthException("Не удалось завершить регистрацию: ${response.status}")

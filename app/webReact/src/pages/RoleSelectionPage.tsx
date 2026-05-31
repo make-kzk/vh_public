@@ -26,6 +26,7 @@ export function RoleSelectionPage({
     e.preventDefault()
     if (role === 'SEEKER') {
       onCompleteRegistration({
+        email: user.email,
         role,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -34,6 +35,7 @@ export function RoleSelectionPage({
       return
     }
     onCompleteRegistration({
+      email: user.email,
       role,
       companyName: companyName.trim(),
     })

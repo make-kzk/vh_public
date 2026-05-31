@@ -33,7 +33,8 @@ fun Route.authRoutes(
             val body = call.receive<DevLoginRequest>()
             val user =
                 try {
-                    userAuthService.findOrCreateDevUser(body.email)
+                    userAuthService.findDevUser(body.email)
+                        ?: return@post call.respond(userAuthService.pendingDevRegistration(body.email))
                 } catch (e: IllegalArgumentException) {
                     return@post call.respond(HttpStatusCode.BadRequest, mapOf("message" to (e.message ?: "Некорректный email")))
                 }
@@ -56,23 +57,22 @@ fun Route.authRoutes(
         }
 
         post("/complete-registration") {
-            val token =
-                call.request.cookies[config.sessionCookieName]
-                    ?: return@post call.respond(HttpStatusCode.Unauthorized, "Не авторизован")
-            val userId =
-                sessionService.resolveUser(token)?.id?.let(UUID::fromString)
-                    ?: return@post call.respond(HttpStatusCode.Unauthorized, "Не авторизован")
-            val existing = sessionService.resolveUser(token)!!
-            if (existing.role != null) {
-                return@post call.respond(HttpStatusCode.Conflict, "Роль уже выбрана")
-            }
             val body = call.receive<CompleteRegistrationRequest>()
+            val token = call.request.cookies[config.sessionCookieName]
+            val email =
+                body.email?.trim()?.lowercase()
+                    ?: sessionService.resolveUser(token)?.email
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("message" to "Укажите email"))
             val updated =
                 try {
-                    userAuthService.completeRegistration(userId, body)
+                    userAuthService.completeRegistration(email, body)
                 } catch (e: IllegalArgumentException) {
                     return@post call.respond(HttpStatusCode.BadRequest, mapOf("message" to (e.message ?: "Некорректные данные")))
+                } catch (e: IllegalStateException) {
+                    return@post call.respond(HttpStatusCode.Conflict, mapOf("message" to (e.message ?: "Пользователь уже зарегистрирован")))
                 }
+            val sessionToken = sessionService.createSession(UUID.fromString(updated.id))
+            call.setSessionCookie(config, sessionToken)
             call.respond(userAuthService.withProfileName(updated))
         }
 

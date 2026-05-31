@@ -10,7 +10,6 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -49,13 +48,14 @@ class UserRepository {
         email: String,
         authProvider: String,
         authSubject: String,
+        role: UserRole,
     ): AuthUserDto =
         transaction {
             val now = OffsetDateTime.now()
             val id =
                 UsersTable.insert {
                     it[UsersTable.email] = email
-                    it[UsersTable.role] = null
+                    it[UsersTable.role] = role.name
                     it[UsersTable.oauthProvider] = authProvider
                     it[UsersTable.oauthSubject] = authSubject
                     it[UsersTable.createdAt] = now
@@ -63,18 +63,8 @@ class UserRepository {
             AuthUserDto(
                 id = id.toString(),
                 email = email,
-                role = null,
+                role = role,
             )
-        }
-
-    fun setRole(userId: UUID, role: UserRole): AuthUserDto? =
-        transaction {
-            val updated =
-                UsersTable.update({ UsersTable.id eq userId }) {
-                    it[UsersTable.role] = role.name
-                }
-            if (updated == 0) return@transaction null
-            findById(userId)
         }
 
     fun deleteById(userId: UUID): Boolean =
@@ -82,12 +72,10 @@ class UserRepository {
             UsersTable.deleteWhere { UsersTable.id eq userId } > 0
         }
 
-    private fun ResultRow.toDto(): AuthUserDto {
-        val roleValue = this[UsersTable.role]
-        return AuthUserDto(
+    private fun ResultRow.toDto(): AuthUserDto =
+        AuthUserDto(
             id = this[UsersTable.id].value.toString(),
             email = this[UsersTable.email],
-            role = roleValue?.let { UserRole.valueOf(it) },
+            role = UserRole.valueOf(this[UsersTable.role]),
         )
-    }
 }

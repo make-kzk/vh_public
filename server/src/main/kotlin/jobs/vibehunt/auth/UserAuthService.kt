@@ -12,39 +12,44 @@ class UserAuthService(
     private val seekerRepository: SeekerRepository,
     private val employerRepository: EmployerRepository,
 ) {
-    fun findOrCreateDevUser(email: String): AuthUserDto {
+    fun findDevUser(email: String): AuthUserDto? {
         val normalizedEmail = email.trim().lowercase()
         require(normalizedEmail.contains('@')) { "Некорректный адрес электронной почты" }
-        val user = userRepository.findByEmail(normalizedEmail) ?: userRepository.create(
-            email = normalizedEmail,
-            authProvider = DEV_PROVIDER,
-            authSubject = normalizedEmail,
-        )
-        return withProfileName(user)
+        return userRepository.findByEmail(normalizedEmail)?.let { withProfileName(it) }
     }
 
-    fun completeRegistration(userId: UUID, request: CompleteRegistrationRequest): AuthUserDto {
-        val user =
-            userRepository.findById(userId)
-                ?: error("Пользователь не найден")
-        if (user.role != null) {
-            error("Роль уже выбрана и не может быть изменена")
+    fun pendingDevRegistration(email: String): AuthUserDto {
+        val normalizedEmail = email.trim().lowercase()
+        require(normalizedEmail.contains('@')) { "Некорректный адрес электронной почты" }
+        return AuthUserDto(id = "", email = normalizedEmail, role = null)
+    }
+
+    fun completeRegistration(email: String, request: CompleteRegistrationRequest): AuthUserDto {
+        val normalizedEmail = email.trim().lowercase()
+        require(normalizedEmail.contains('@')) { "Некорректный адрес электронной почты" }
+        if (userRepository.findByEmail(normalizedEmail) != null) {
+            error("Пользователь уже зарегистрирован")
         }
         val profileData = validateRegistrationProfile(request)
-        val updated =
-            userRepository.setRole(userId, request.role)
-                ?.also {
-                    profileProvisioningService.provisionForRole(
-                        userId = userId,
+        val userId =
+            UUID.fromString(
+                userRepository
+                    .create(
+                        email = normalizedEmail,
+                        authProvider = DEV_PROVIDER,
+                        authSubject = normalizedEmail,
                         role = request.role,
-                        firstName = profileData.firstName,
-                        lastName = profileData.lastName,
-                        middleName = profileData.middleName,
-                        companyName = profileData.companyName,
-                    )
-                }
-                ?: error("Не удалось установить роль")
-        return withProfileName(updated)
+                    ).id,
+            )
+        profileProvisioningService.provisionForRole(
+            userId = userId,
+            role = request.role,
+            firstName = profileData.firstName,
+            lastName = profileData.lastName,
+            middleName = profileData.middleName,
+            companyName = profileData.companyName,
+        )
+        return withProfileName(userRepository.findById(userId) ?: error("Пользователь не найден"))
     }
 
     fun deleteAccount(userId: UUID) {
