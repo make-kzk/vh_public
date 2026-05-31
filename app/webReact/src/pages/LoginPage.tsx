@@ -10,19 +10,35 @@ interface LoginPageProps {
 export function LoginPage({ isBusy, errorMessage, onSignIn }: LoginPageProps) {
   const [email, setEmail] = useState('')
 
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (isBusy || email.trim() === '') return
+    onSignIn(email)
+  }
+
   return (
     <AdaptiveLayout>
-      <div className="flex flex-col items-center gap-4">
+      <form
+        className="flex w-full flex-col items-center gap-4"
+        onSubmit={handleSubmit}
+        autoComplete="on"
+      >
         <h1 className="text-3xl font-semibold tracking-tight">VibeHunt</h1>
         <p className="text-center text-base text-neutral-600">
           Найдите работу или наймите специалистов. Войдите, чтобы продолжить.
         </p>
-        <label className="w-full">
+        <label className="w-full" htmlFor="login-email">
           <span className="mb-1 block text-sm font-medium text-neutral-700">
             Электронная почта
           </span>
           <input
+            id="login-email"
+            name="email"
             type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoFocus
+            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isBusy}
@@ -42,9 +58,8 @@ export function LoginPage({ isBusy, errorMessage, onSignIn }: LoginPageProps) {
           </div>
         ) : (
           <button
-            type="button"
+            type="submit"
             disabled={email.trim() === ''}
-            onClick={() => onSignIn(email)}
             className="w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Продолжить
@@ -54,7 +69,7 @@ export function LoginPage({ isBusy, errorMessage, onSignIn }: LoginPageProps) {
           Роль (соискатель или работодатель) выбирается один раз после входа и позже не
           меняется.
         </p>
-      </div>
+      </form>
     </AdaptiveLayout>
   )
 }

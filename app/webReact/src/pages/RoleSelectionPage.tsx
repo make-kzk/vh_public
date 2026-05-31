@@ -24,6 +24,7 @@ export function RoleSelectionPage({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (isBusy) return
     if (role === 'SEEKER') {
       onCompleteRegistration({
         email: user.email,
@@ -43,7 +44,7 @@ export function RoleSelectionPage({
 
   return (
     <AdaptiveLayout>
-      <form className="flex w-full flex-col gap-4" onSubmit={handleSubmit}>
+      <form className="flex w-full flex-col gap-4" onSubmit={handleSubmit} autoComplete="on">
         <h1 className="text-center text-xl font-semibold">Завершите регистрацию</h1>
         <p className="text-center text-sm text-neutral-600">
           Добро пожаловать. Выберите тип аккаунта для {user.email} — его нельзя
@@ -60,6 +61,8 @@ export function RoleSelectionPage({
             <label className="flex flex-col gap-1">
               <span className="text-sm font-medium text-neutral-700">Имя</span>
               <input
+                name="given-name"
+                autoComplete="given-name"
                 required
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -70,6 +73,8 @@ export function RoleSelectionPage({
             <label className="flex flex-col gap-1">
               <span className="text-sm font-medium text-neutral-700">Фамилия</span>
               <input
+                name="family-name"
+                autoComplete="family-name"
                 required
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -80,6 +85,8 @@ export function RoleSelectionPage({
             <label className="flex flex-col gap-1 sm:col-span-2">
               <span className="text-sm font-medium text-neutral-700">Отчество</span>
               <input
+                name="additional-name"
+                autoComplete="additional-name"
                 value={middleName}
                 onChange={(e) => setMiddleName(e.target.value)}
                 disabled={isBusy}
@@ -91,6 +98,8 @@ export function RoleSelectionPage({
           <label className="flex flex-col gap-1">
             <span className="text-sm font-medium text-neutral-700">Название компании</span>
             <input
+              name="organization"
+              autoComplete="organization"
               required
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
