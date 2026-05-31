@@ -1,10 +1,12 @@
 package jobs.vibehunt.auth
 
 import jobs.vibehunt.db.UserRepository
+import jobs.vibehunt.domain.ProfileProvisioningService
 import java.util.UUID
 
 class UserAuthService(
     private val userRepository: UserRepository,
+    private val profileProvisioningService: ProfileProvisioningService,
 ) {
     fun findOrCreateDevUser(email: String): AuthUserDto {
         val normalizedEmail = email.trim().lowercase()
@@ -26,6 +28,7 @@ class UserAuthService(
             error("Роль уже выбрана и не может быть изменена")
         }
         return userRepository.setRole(userId, role)
+            ?.also { profileProvisioningService.provisionForRole(userId, role) }
             ?: error("Не удалось установить роль")
     }
 

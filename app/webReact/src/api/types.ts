@@ -24,3 +24,189 @@ export type AuthState =
   | { kind: 'unauthenticated' }
   | { kind: 'needsRegistration'; user: AuthUserDto }
   | { kind: 'authenticated'; user: AuthUserDto }
+
+export interface OccupationDto {
+  id: number
+  parentId: number | null
+  name: string
+  isLeaf: boolean
+}
+
+export interface SkillDto {
+  id: number
+  name: string
+}
+
+export interface SeekerProfileDto {
+  id: number
+  firstName: string
+  middleName: string | null
+  lastName: string
+  phone: string | null
+  telegram: string | null
+  linkedin: string | null
+}
+
+export interface UpdateSeekerProfileRequest {
+  firstName: string
+  middleName?: string | null
+  lastName: string
+  phone?: string | null
+  telegram?: string | null
+  linkedin?: string | null
+}
+
+export interface SeekerExperienceDto {
+  id: number
+  companyName: string
+  position: string
+  description: string | null
+  startDate: string
+  endDate: string | null
+}
+
+export interface CreateSeekerExperienceRequest {
+  companyName: string
+  position: string
+  description?: string | null
+  startDate: string
+  endDate?: string | null
+}
+
+export interface SeekerEducationDto {
+  id: number
+  institution: string
+  degree: string | null
+  specialization: string
+  endYear: number
+}
+
+export interface CreateSeekerEducationRequest {
+  institution: string
+  degree?: string | null
+  specialization: string
+  endYear: number
+}
+
+export interface SeekerSkillsResponse {
+  skillIds: number[]
+  skills: SkillDto[]
+}
+
+export interface SeekerDesiredPositionsResponse {
+  occupationIds: number[]
+  occupations: OccupationDto[]
+}
+
+export interface EmployerProfileDto {
+  id: number
+  name: string
+  description: string | null
+  website: string | null
+  phone: string | null
+  emailContact: string | null
+}
+
+export interface UpdateEmployerProfileRequest {
+  name: string
+  description?: string | null
+  website?: string | null
+  phone?: string | null
+  emailContact?: string | null
+}
+
+export interface JobProfileDto {
+  id: number
+  occupationId: number
+  occupationName: string
+  description: string | null
+  isActive: boolean
+  skillIds: number[]
+  skills: SkillDto[]
+}
+
+export interface CreateJobProfileRequest {
+  occupationId: number
+  description?: string | null
+  isActive?: boolean
+  skillIds?: number[]
+}
+
+export interface PersonalityTraitDto {
+  key: string
+  label: string
+  scalePosition: number
+  leftPole: string
+  rightPole: string
+  description: string
+}
+
+export interface PersonalityCategoryDto {
+  key: string
+  description: string
+  traits: PersonalityTraitDto[]
+}
+
+export interface PersonalityItemDto {
+  title: string
+  description: string
+}
+
+export interface PersonalitySectionDto {
+  title: string
+  items: PersonalityItemDto[]
+}
+
+export interface PersonalityPreviewDto {
+  title: string
+  description: string
+  profile: string
+  axisDominance: number
+  axisInfluence: number
+  axisStability: number
+  axisIntegrity: number
+  axisAutonomy: number
+  axisPace: number
+  categories: PersonalityCategoryDto[]
+  energySources: PersonalitySectionDto
+  stopFactors: PersonalitySectionDto
+  testsCompleted: number
+  testsTotal: number
+}
+
+export interface JobRecommendationDto {
+  id: number
+  companyName: string
+  positionName: string
+  description: string
+  matchScore: number
+  matchScoreDisplay: number
+  testsCompleted: number
+  isScoreReduced: boolean
+}
+
+export interface CandidateRecommendationDto {
+  id: number
+  firstName: string
+  lastName: string
+  positionName: string
+  skills: string[]
+  matchScore: number
+  matchScoreDisplay: number
+  testsCompleted: number
+  isScoreReduced: boolean
+}
+
+export interface SeekerDashboardDto {
+  profileCompletionPercent: number
+  desiredPositionsCount: number
+  experienceCount: number
+  recommendationsPreview: JobRecommendationDto[]
+}
+
+export interface EmployerDashboardDto {
+  companyName: string
+  jobProfilesCount: number
+  activeJobProfilesCount: number
+  totalCandidatesStub: number
+}
