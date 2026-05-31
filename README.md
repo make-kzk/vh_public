@@ -18,6 +18,10 @@ This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM
 
 * [/server](./server/src/main/kotlin) is for the Ktor server application.
 
+### Railway deployment
+
+Deploy the API and React web client to Railway with Postgres: see [docs/railway.md](./docs/railway.md).
+
 ### Authentication (web MVP)
 
 VibeHunt uses **httpOnly session cookies** for local development (`AUTH_DEV_MODE=true`). Production auth is planned via **Supabase Auth** (JWT). Web clients talk to `/api/auth/*` with cookies (dev servers proxy `/api` to Ktor on port 8080).

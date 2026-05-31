@@ -1,0 +1,35 @@
+# Build outputs and caches
+.gradle/
+**/.gradle/
+**/build/
+.kotlin/
+
+# Frontend and mobile (not needed for API image)
+app/
+
+# Node
+node_modules/
+**/node_modules/
+
+# IDE and OS
+.idea/
+*.iml
+.DS_Store
+xcuserdata/
+.cxx/
+.externalNativeBuild/
+captures/
+
+# Git and env
+.git/
+.gitignore
+.env
+.env.*
+
+# Docs and misc
+docs/
+*.md
+!server/src/**/*.md
+.junie/
+.workspace/
+kotlin-js-store/

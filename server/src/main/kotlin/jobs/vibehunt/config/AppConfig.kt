@@ -10,21 +10,43 @@ data class AppConfig(
     val sessionCookieName: String,
     val sessionDays: Long,
     val authDevMode: Boolean,
+    val cookieSecure: Boolean,
 ) {
     companion object {
         fun fromEnvironment(): AppConfig {
             val dotEnv = DotEnv.load()
+            val webOrigin = env("WEB_ORIGIN", "http://localhost:8081,http://localhost:8082", dotEnv)
+            val webOrigins = parseOrigins(webOrigin)
+            val frontendUrl = env("FRONTEND_URL", "http://localhost:8081", dotEnv)
+            val database =
+                DatabaseConfig.resolve(
+                    databaseUrl = resolve("DATABASE_URL", dotEnv),
+                    databaseUser = resolve("DATABASE_USER", dotEnv),
+                    databasePassword = resolve("DATABASE_PASSWORD", dotEnv),
+                )
             return AppConfig(
-                databaseUrl = env("DATABASE_URL", "jdbc:postgresql://localhost:5432/vibehunt", dotEnv),
-                databaseUser = env("DATABASE_USER", "vibehunt", dotEnv),
-                databasePassword = env("DATABASE_PASSWORD", "vibehunt", dotEnv),
-                webOrigin = env("WEB_ORIGIN", "http://localhost:8081,http://localhost:8082", dotEnv),
-                webOrigins = parseOrigins(env("WEB_ORIGIN", "http://localhost:8081,http://localhost:8082", dotEnv)),
-                frontendUrl = env("FRONTEND_URL", "http://localhost:8081", dotEnv),
+                databaseUrl = database.jdbcUrl,
+                databaseUser = database.user,
+                databasePassword = database.password,
+                webOrigin = webOrigin,
+                webOrigins = webOrigins,
+                frontendUrl = frontendUrl,
                 sessionCookieName = env("SESSION_COOKIE_NAME", "vibehunt_session", dotEnv),
                 sessionDays = env("SESSION_DAYS", "30", dotEnv).toLong(),
                 authDevMode = authDevModeEnabled(dotEnv),
+                cookieSecure = cookieSecureEnabled(dotEnv, webOrigins, frontendUrl),
             )
+        }
+
+        private fun cookieSecureEnabled(
+            dotEnv: Map<String, String>,
+            webOrigins: List<String>,
+            frontendUrl: String,
+        ): Boolean {
+            resolve("COOKIE_SECURE", dotEnv)?.let { raw ->
+                return raw.equals("true", ignoreCase = true)
+            }
+            return (listOf(frontendUrl) + webOrigins).any { it.startsWith("https://", ignoreCase = true) }
         }
 
         private fun authDevModeEnabled(dotEnv: Map<String, String>): Boolean {
