@@ -43,9 +43,11 @@ Do **not** use Railpack/Nixpacks auto-detect for the backend — use `builder = 
 
    | Variable | Value |
    |----------|--------|
-   | `BACKEND_UPSTREAM` | `${{Backend.RAILWAY_PRIVATE_DOMAIN}}:${{Backend.PORT}}` |
+   | `BACKEND_UPSTREAM` | `${{Backend.RAILWAY_PRIVATE_DOMAIN}}:8080` |
 
-   Use exact service names in `${{...}}` (case-sensitive).
+   Use exact service names in `${{...}}` (case-sensitive). Do **not** use `${{Backend.PORT}}` here — cross-service `PORT` references resolve empty and nginx fails with `invalid port in upstream`.
+
+   The API listens on `8080` (`deploy/Dockerfile.server` and Ktor default when `PORT` is unset).
 
 5. **Networking → Public Networking**: **Generate Domain** (required for users).
 
@@ -117,7 +119,7 @@ CLI uploads from repo root and respects `.gitignore`. Docker builds use `.docker
 
 **Frontend: `package.json` not found** — Wrong Dockerfile context. Use `/deploy/railway.frontend.toml`, **empty** Root Directory, and `deploy/Dockerfile.webReact`.
 
-**`BACKEND_UPSTREAM is required` or nginx upstream errors** — Set `BACKEND_UPSTREAM=${{Backend.RAILWAY_PRIVATE_DOMAIN}}:${{Backend.PORT}}` on frontend; include the port.
+**`BACKEND_UPSTREAM is required` or nginx `invalid port in upstream`** — Set `BACKEND_UPSTREAM=${{Backend.RAILWAY_PRIVATE_DOMAIN}}:8080` on frontend (literal `8080`, not `${{Backend.PORT}}`). Wrong config file (`/app/webReact/railway.toml` with repo-root context) also breaks the Docker build — use `/deploy/railway.frontend.toml` and empty Root Directory.
 
 **Database errors** — `DATABASE_URL=${{Postgres.DATABASE_URL}}`; SSL handled in app code.
 

@@ -1,4 +1,5 @@
-# Use only when service Root Directory is /app/webReact (Dashboard). Prefer /deploy/railway.frontend.toml + repo root.
+# Legacy: only when Root Directory is /app/webReact AND build context is that folder.
+# CLI deploy from repo root: Dashboard → Config file /deploy/railway.frontend.toml (NOT this file).
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
