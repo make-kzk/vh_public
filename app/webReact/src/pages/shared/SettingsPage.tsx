@@ -61,7 +61,7 @@ export function SettingsPage() {
         setEmployerProfile(updated)
       }
       await refreshSession()
-      setProfileMessage('Профиль сохранён')
+      setProfileMessage(user.role === 'EMPLOYER' ? 'Данные компании сохранены' : 'Профиль сохранён')
     } catch (err) {
       setProfileError(err instanceof Error ? err.message : 'Ошибка сохранения')
     } finally {
@@ -131,17 +131,73 @@ export function SettingsPage() {
               </div>
             )}
             {user.role === 'EMPLOYER' && employerProfile != null && (
-              <label className="flex flex-col gap-1">
-                <span className="text-sm font-medium text-neutral-700">Название компании</span>
-                <input
-                  required
-                  value={employerProfile.name}
-                  onChange={(e) =>
-                    setEmployerProfile({ ...employerProfile, name: e.target.value })
-                  }
-                  className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-                />
-              </label>
+              <>
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-neutral-700">Название</span>
+                  <input
+                    required
+                    value={employerProfile.name}
+                    onChange={(e) =>
+                      setEmployerProfile({ ...employerProfile, name: e.target.value })
+                    }
+                    className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-neutral-700">Описание</span>
+                  <textarea
+                    rows={4}
+                    value={employerProfile.description ?? ''}
+                    onChange={(e) =>
+                      setEmployerProfile({
+                        ...employerProfile,
+                        description: e.target.value || null,
+                      })
+                    }
+                    className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-neutral-700">Сайт</span>
+                  <input
+                    value={employerProfile.website ?? ''}
+                    onChange={(e) =>
+                      setEmployerProfile({
+                        ...employerProfile,
+                        website: e.target.value || null,
+                      })
+                    }
+                    className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-neutral-700">Телефон</span>
+                  <input
+                    value={employerProfile.phone ?? ''}
+                    onChange={(e) =>
+                      setEmployerProfile({
+                        ...employerProfile,
+                        phone: e.target.value || null,
+                      })
+                    }
+                    className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-neutral-700">Email для связи</span>
+                  <input
+                    type="email"
+                    value={employerProfile.emailContact ?? ''}
+                    onChange={(e) =>
+                      setEmployerProfile({
+                        ...employerProfile,
+                        emailContact: e.target.value || null,
+                      })
+                    }
+                    className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                  />
+                </label>
+              </>
             )}
             {profileMessage != null && <p className="text-sm text-green-700">{profileMessage}</p>}
             {profileError != null && <p className="text-sm text-red-600">{profileError}</p>}

@@ -4,7 +4,6 @@ import { LoadingSpinner } from './components/LoadingSpinner'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { EmployerCandidatesPage } from './pages/employer/EmployerCandidatesPage'
-import { EmployerCompanyPage } from './pages/employer/EmployerCompanyPage'
 import { EmployerDashboardPage } from './pages/employer/EmployerDashboardPage'
 import { EmployerProfilesPage } from './pages/employer/EmployerProfilesPage'
 import { LoginPage } from './pages/LoginPage'
@@ -25,7 +24,6 @@ const SEEKER_NAV = [
 
 const EMPLOYER_NAV = [
   { to: '/employer', label: 'Дашборд', end: true },
-  { to: '/employer/company', label: 'Компания' },
   { to: '/employer/profiles', label: 'Профили' },
   { to: '/employer/settings', label: 'Настройки' },
 ]
@@ -134,7 +132,7 @@ function AppRoutes() {
       </Route>
       <Route path="/employer" element={<EmployerLayout />}>
         <Route index element={<EmployerDashboardPage />} />
-        <Route path="company" element={<EmployerCompanyPage />} />
+        <Route path="company" element={<Navigate to="/employer/settings" replace />} />
         <Route path="profiles" element={<EmployerProfilesPage />} />
         <Route path="profiles/:id/candidates" element={<EmployerCandidatesPage />} />
         <Route path="settings" element={<SettingsPage />} />
