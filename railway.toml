@@ -1,8 +1,19 @@
-# Backend (Ktor API) — build from repository root. Link this file in the backend service:
-# Settings → Config file: /railway.toml  (or /deploy/railway.backend.toml — same [build]/[deploy])
+# Backend (Ktor API) — build from repository root.
+# Railway service: Settings → Config file: /railway.toml, Root Directory: empty
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "deploy/Dockerfile.server"
+watchPatterns = [
+  "/server/**",
+  "/core/**",
+  "/deploy/Dockerfile.server",
+  "/gradle/**",
+  "/gradlew",
+  "/settings.gradle.kts",
+  "/build.gradle.kts",
+  "/gradle.properties",
+  "/railway.toml",
+]
 
 [deploy]
 healthcheckPath = "/health"
