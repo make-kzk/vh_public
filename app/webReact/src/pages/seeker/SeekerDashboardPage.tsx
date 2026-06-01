@@ -48,13 +48,12 @@ export function SeekerDashboardPage() {
               Пройдите 3 теста для более точного подбора вакансий
             </p>
           </div>
-          <button
-            type="button"
-            disabled
-            className="rounded-lg bg-amber-200 px-4 py-2 text-sm font-medium text-amber-900 opacity-70"
+          <Link
+            to="/seeker/personality/tests"
+            className="rounded-lg bg-amber-900 px-4 py-2 text-sm font-medium text-white"
           >
-            Скоро
-          </button>
+            Пройти тесты
+          </Link>
         </div>
       </div>
       <section>

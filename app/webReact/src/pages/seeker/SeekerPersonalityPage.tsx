@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { fetchPersonalityPreview } from '../../api/seekerApi'
 import type { PersonalityPreviewDto } from '../../api/types'
@@ -39,11 +40,25 @@ export function SeekerPersonalityPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-semibold">Личностные характеристики</h1>
-        <p className="mt-1 text-sm text-neutral-600">Предварительный профиль (демо-данные)</p>
+        <p className="mt-1 text-sm text-neutral-600">
+          {data.testsCompleted >= data.testsTotal
+            ? 'Все группы тестов пройдены — профиль будет сформирован после обработки'
+            : 'Пройдите все методики для формирования профиля'}
+        </p>
       </div>
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-        Пройдите 3 теста для точного мэтчинга. Сейчас отображается пример профиля (
-        {data.testsCompleted}/{data.testsTotal} тестов пройдено).
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p>
+            Пройдено групп тестов: {data.testsCompleted}/{data.testsTotal}. Для точного мэтчинга завершите все
+            методики в каждой группе.
+          </p>
+          <Link
+            to="/seeker/personality/tests"
+            className="rounded-lg bg-amber-900 px-4 py-2 text-sm font-medium text-white"
+          >
+            {data.testsCompleted >= data.testsTotal ? 'Смотреть тесты' : 'Пройти тесты'}
+          </Link>
+        </div>
       </div>
       <FormSection title={data.title} description={data.description}>
         <p className="text-sm text-neutral-700">{data.profile}</p>

@@ -10,6 +10,8 @@ import { LoginPage } from './pages/LoginPage'
 import { RoleSelectionPage } from './pages/RoleSelectionPage'
 import { SeekerDashboardPage } from './pages/seeker/SeekerDashboardPage'
 import { SeekerPersonalityPage } from './pages/seeker/SeekerPersonalityPage'
+import { SeekerTestTakePage } from './pages/seeker/SeekerTestTakePage'
+import { SeekerTestsListPage } from './pages/seeker/SeekerTestsListPage'
 import { SeekerPositionsPage } from './pages/seeker/SeekerPositionsPage'
 import { SeekerProfilePage } from './pages/seeker/SeekerProfilePage'
 import { SettingsPage } from './pages/shared/SettingsPage'
@@ -126,6 +128,8 @@ function AppRoutes() {
       <Route path="/seeker" element={<SeekerLayout />}>
         <Route index element={<SeekerDashboardPage />} />
         <Route path="personality" element={<SeekerPersonalityPage />} />
+        <Route path="personality/tests" element={<SeekerTestsListPage />} />
+        <Route path="personality/tests/:surveyId" element={<SeekerTestTakePage />} />
         <Route path="profile" element={<SeekerProfilePage />} />
         <Route path="positions" element={<SeekerPositionsPage />} />
         <Route path="settings" element={<SettingsPage />} />

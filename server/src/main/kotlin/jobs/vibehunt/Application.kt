@@ -13,11 +13,13 @@ import jobs.vibehunt.db.DatabaseFactory
 import jobs.vibehunt.db.EmployerRepository
 import jobs.vibehunt.db.ReferenceRepository
 import jobs.vibehunt.db.SeekerRepository
+import jobs.vibehunt.db.SurveyRepository
 import jobs.vibehunt.db.SessionRepository
 import jobs.vibehunt.db.UserRepository
 import jobs.vibehunt.domain.EmployerProfileService
 import jobs.vibehunt.domain.ProfileProvisioningService
 import jobs.vibehunt.domain.SeekerProfileService
+import jobs.vibehunt.domain.SurveyService
 import jobs.vibehunt.plugins.configureCors
 import jobs.vibehunt.plugins.configureSerialization
 import jobs.vibehunt.routes.authRoutes
@@ -45,7 +47,9 @@ fun Application.module() {
         UserAuthService(userRepository, profileProvisioningService, seekerRepository, employerRepository)
     val sessionService = SessionService(config, sessionRepository, userRepository, userAuthService::withProfileName)
     val roleGuard = RoleGuard(config, sessionService)
-    val seekerProfileService = SeekerProfileService(seekerRepository, referenceRepository)
+    val surveyRepository = SurveyRepository()
+    val surveyService = SurveyService(seekerRepository, surveyRepository)
+    val seekerProfileService = SeekerProfileService(seekerRepository, referenceRepository, surveyService)
     val employerProfileService = EmployerProfileService(employerRepository, referenceRepository)
 
     configureSerialization()
@@ -60,7 +64,7 @@ fun Application.module() {
         }
         authRoutes(config, userAuthService, sessionService)
         referenceRoutes(roleGuard, referenceRepository)
-        seekerRoutes(roleGuard, seekerProfileService)
+        seekerRoutes(roleGuard, seekerProfileService, surveyService)
         employerRoutes(roleGuard, employerProfileService)
     }
 }

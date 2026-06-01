@@ -1,5 +1,6 @@
 import { apiFetch } from './client'
 import type {
+  CompleteSurveyResponseDto,
   CreateSeekerEducationRequest,
   CreateSeekerExperienceRequest,
   JobRecommendationDto,
@@ -10,6 +11,8 @@ import type {
   SeekerExperienceDto,
   SeekerProfileDto,
   SeekerSkillsResponse,
+  SurveyDetailDto,
+  SurveyGroupsResponseDto,
   UpdateSeekerProfileRequest,
 } from './types'
 
@@ -117,4 +120,32 @@ export function fetchPersonalityPreview(): Promise<PersonalityPreviewDto> {
 
 export function fetchRecommendations(): Promise<JobRecommendationDto[]> {
   return apiFetch('/api/seeker/recommendations')
+}
+
+export function fetchSurveyGroups(): Promise<SurveyGroupsResponseDto> {
+  return apiFetch('/api/seeker/surveys')
+}
+
+export function fetchSurvey(id: number): Promise<SurveyDetailDto> {
+  return apiFetch(`/api/seeker/surveys/${id}`)
+}
+
+export function startSurvey(id: number): Promise<SurveyDetailDto> {
+  return apiFetch(`/api/seeker/surveys/${id}/start`, { method: 'POST' })
+}
+
+export function saveSurveyAnswers(id: number, answers: Record<string, unknown>): Promise<SurveyDetailDto> {
+  return apiFetch(`/api/seeker/surveys/${id}/answers`, {
+    method: 'PUT',
+    headers: jsonHeaders,
+    body: JSON.stringify({ answers }),
+  })
+}
+
+export function completeSurvey(id: number, answers: Record<string, unknown>): Promise<CompleteSurveyResponseDto> {
+  return apiFetch(`/api/seeker/surveys/${id}/complete`, {
+    method: 'POST',
+    headers: jsonHeaders,
+    body: JSON.stringify({ answers }),
+  })
 }

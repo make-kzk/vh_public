@@ -51,6 +51,7 @@ class ProfileProvisioningService(
 class SeekerProfileService(
     private val seekerRepository: SeekerRepository,
     private val referenceRepository: ReferenceRepository,
+    private val surveyService: SurveyService,
 ) {
     fun getOrCreateSeeker(userId: UUID) =
         seekerRepository.findByUserId(userId) ?: seekerRepository.createForUser(userId)
@@ -151,7 +152,7 @@ class SeekerProfileService(
         )
     }
 
-    fun personalityPreview() = StubData.personalityPreview()
+    fun personalityPreview(userId: UUID) = surveyService.personalityPreview(userId)
 
     fun recommendations() = StubData.jobRecommendations()
 }

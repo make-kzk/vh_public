@@ -215,3 +215,71 @@ export interface EmployerDashboardDto {
   activeJobProfilesCount: number
   totalCandidatesStub: number
 }
+
+export type SurveyStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'
+
+export interface SurveyListItemDto {
+  id: number
+  code: string
+  name: string
+  description: string
+  status: SurveyStatus
+  sortOrder: number
+}
+
+export interface SurveyGroupDto {
+  code: string
+  name: string
+  surveys: SurveyListItemDto[]
+  completedCount: number
+  totalCount: number
+}
+
+export interface SurveyGroupsResponseDto {
+  groups: SurveyGroupDto[]
+  testsCompleted: number
+  testsTotal: number
+}
+
+export interface SurveyDetailDto {
+  id: number
+  code: string
+  name: string
+  description: string
+  groupCode: string
+  questionsJson: string
+  status: SurveyStatus
+  answersJson: string | null
+  resultId: number | null
+}
+
+export interface CompleteSurveyResponseDto {
+  resultId: number
+  surveyId: number
+  status: SurveyStatus
+}
+
+export interface SurveyOption {
+  id: number
+  label: string
+}
+
+export interface SurveyQuestionBase {
+  id: number
+  text?: string
+  option1?: string
+  option2?: string
+  options?: SurveyOption[]
+}
+
+export interface SurveyQuestionsDefinition {
+  type: string
+  instruction: string
+  answerKey?: string
+  minSelections?: number
+  maxSelections?: number
+  totalPoints?: number
+  maxPerOption?: number
+  questions?: SurveyQuestionBase[]
+  options?: SurveyOption[]
+}

@@ -10,6 +10,6 @@ object SurveyResultsTable : LongIdTable("survey_results") {
     val answers = text("answers")
     val calculatedResults = text("calculated_results").nullable()
     val startedAt = timestampWithTimeZone("started_at")
-    val completedAt = timestampWithTimeZone("completed_at")
+    val completedAt = timestampWithTimeZone("completed_at").nullable()
     val updatedAt = timestampWithTimeZone("updated_at")
 }

@@ -9,6 +9,8 @@ import jobs.vibehunt.auth.RoleGuard
 import jobs.vibehunt.auth.UserRole
 import jobs.vibehunt.db.ReferenceRepository
 import jobs.vibehunt.domain.SeekerProfileService
+import jobs.vibehunt.domain.SurveyService
+import jobs.vibehunt.survey.SaveSurveyAnswersRequest
 import jobs.vibehunt.models.CreateSeekerEducationRequest
 import jobs.vibehunt.models.CreateSeekerExperienceRequest
 import jobs.vibehunt.models.UpdateSeekerDesiredPositionsRequest
@@ -38,6 +40,7 @@ fun Route.referenceRoutes(
 fun Route.seekerRoutes(
     roleGuard: RoleGuard,
     seekerProfileService: SeekerProfileService,
+    surveyService: SurveyService,
 ) {
     route("/api/seeker") {
         get("/dashboard") {
@@ -143,8 +146,69 @@ fun Route.seekerRoutes(
             }
         }
         get("/personality-preview") {
-            roleGuard.requireRole(call, UserRole.SEEKER) ?: return@get
-            call.respond(seekerProfileService.personalityPreview())
+            val user = roleGuard.requireRole(call, UserRole.SEEKER) ?: return@get
+            call.respond(seekerProfileService.personalityPreview(user.id))
+        }
+        get("/personality/llm-context") {
+            val user = roleGuard.requireRole(call, UserRole.SEEKER) ?: return@get
+            call.respond(surveyService.buildLlmContext(user.id))
+        }
+        get("/surveys") {
+            val user = roleGuard.requireRole(call, UserRole.SEEKER) ?: return@get
+            call.respond(surveyService.listGroups(user.id))
+        }
+        get("/surveys/{id}") {
+            val user = roleGuard.requireRole(call, UserRole.SEEKER) ?: return@get
+            val id = call.parameters["id"]?.toLongOrNull()
+                ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("message" to "Некорректный id"))
+            try {
+                call.respond(surveyService.getSurvey(user.id, id))
+            } catch (e: IllegalStateException) {
+                call.respond(HttpStatusCode.NotFound, mapOf("message" to (e.message ?: "Не найдено")))
+            }
+        }
+        post("/surveys/{id}/start") {
+            val user = roleGuard.requireRole(call, UserRole.SEEKER) ?: return@post
+            val id = call.parameters["id"]?.toLongOrNull()
+                ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("message" to "Некорректный id"))
+            try {
+                call.respond(surveyService.startSurvey(user.id, id))
+            } catch (e: IllegalStateException) {
+                val status = if (e.message?.contains("пройден") == true) HttpStatusCode.Conflict else HttpStatusCode.BadRequest
+                call.respond(status, mapOf("message" to (e.message ?: "Ошибка")))
+            }
+        }
+        put("/surveys/{id}/answers") {
+            val user = roleGuard.requireRole(call, UserRole.SEEKER) ?: return@put
+            val id = call.parameters["id"]?.toLongOrNull()
+                ?: return@put call.respond(HttpStatusCode.BadRequest, mapOf("message" to "Некорректный id"))
+            val body = call.receive<SaveSurveyAnswersRequest>()
+            try {
+                call.respond(surveyService.saveAnswers(user.id, id, body))
+            } catch (e: IllegalStateException) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("message" to (e.message ?: "Ошибка")))
+            }
+        }
+        post("/surveys/{id}/complete") {
+            val user = roleGuard.requireRole(call, UserRole.SEEKER) ?: return@post
+            val id = call.parameters["id"]?.toLongOrNull()
+                ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("message" to "Некорректный id"))
+            val body = call.receive<SaveSurveyAnswersRequest>()
+            try {
+                val result = surveyService.completeSurvey(user.id, id, body)
+                call.respond(
+                    jobs.vibehunt.survey.CompleteSurveyResponseDto(
+                        resultId = result.id,
+                        surveyId = result.surveyId,
+                        status = jobs.vibehunt.survey.SurveyStatus.COMPLETED,
+                    ),
+                )
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("message" to (e.message ?: "Некорректные ответы")))
+            } catch (e: IllegalStateException) {
+                val status = if (e.message?.contains("пройден") == true) HttpStatusCode.Conflict else HttpStatusCode.BadRequest
+                call.respond(status, mapOf("message" to (e.message ?: "Ошибка")))
+            }
         }
         get("/recommendations") {
             roleGuard.requireRole(call, UserRole.SEEKER) ?: return@get
