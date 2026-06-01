@@ -115,6 +115,8 @@ If `WEB_ORIGIN` / `FRONTEND_URL` were not set via `${{Frontend.RAILWAY_PUBLIC_DO
 1. **Stale backend IP after redeploy** — redeploy **Frontend** (temporary fix), or deploy the nginx `resolver [fd12::10]` + `$backend_upstream` pattern in `app/webReact/nginx.conf.template`.
 2. **IPv6 upstream timeout** — nginx may round-robin to the backend’s IPv6 private address while Ktor listens on IPv4 only (`0.0.0.0`). One request works (login), the next fails (registration). Fix: bind the API to `::` in `Application.kt` and/or set `resolver [fd12::10] ipv6=off` in nginx so proxy uses IPv4 only.
 
+**404 on `/api/*` after nginx resolver change** — Using `proxy_pass http://$variable/api/` strips the path; backend sees `GET /api/` instead of `/api/auth/me`. Use `proxy_pass http://$backend_upstream$request_uri;` in `app/webReact/nginx.conf.template`.
+
 Confirm `BACKEND_UPSTREAM=${{Backend.RAILWAY_PRIVATE_DOMAIN}}:8080` on Frontend.
 
 **Unnecessary rebuilds** — `watchPatterns` in `/railway.toml` and `/deploy/railway.frontend.toml` limit which file changes trigger each service.
