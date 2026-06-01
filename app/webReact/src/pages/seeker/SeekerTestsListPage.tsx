@@ -64,9 +64,7 @@ export function SeekerTestsListPage() {
                   </div>
                   <p className="mt-1 text-sm text-neutral-600">{survey.description}</p>
                 </div>
-                {survey.status === 'COMPLETED' ? (
-                  <span className="text-sm text-green-700">Пройдено</span>
-                ) : (
+                {survey.status !== 'COMPLETED' && (
                   <Link
                     to={`/seeker/personality/tests/${survey.id}`}
                     className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
