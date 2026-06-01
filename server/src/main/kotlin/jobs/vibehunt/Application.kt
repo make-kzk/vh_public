@@ -29,7 +29,8 @@ import jobs.vibehunt.routes.seekerRoutes
 
 fun main() {
     val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
-    embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module)
+    // Railway private networking is IPv6; :: accepts both v4 and v6 on Linux.
+    embeddedServer(Netty, port = port, host = "::", module = Application::module)
         .start(wait = true)
 }
 

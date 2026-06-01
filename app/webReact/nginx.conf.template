@@ -4,12 +4,18 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # Railway private DNS — re-resolve backend hostname after redeploys (IPs are not stable).
+    # ipv6=off: resolve only IPv4 upstream until the API listens on IPv6 (see Application.kt host = "::").
+    resolver [fd12::10] ipv6=off valid=5s;
+    resolver_timeout 5s;
+    set $backend_upstream ${BACKEND_UPSTREAM};
+
     location / {
         try_files $uri $uri/ /index.html;
     }
 
     location /api/ {
-        proxy_pass http://${BACKEND_UPSTREAM}/api/;
+        proxy_pass http://$backend_upstream/api/;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

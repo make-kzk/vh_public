@@ -108,6 +108,15 @@ If `WEB_ORIGIN` / `FRONTEND_URL` were not set via `${{Frontend.RAILWAY_PUBLIC_DO
 
 **401 after login** — `WEB_ORIGIN` must match frontend URL exactly (`https://`, no trailing slash).
 
+**403 on login (CORS)** — Backend logs show `CORS check fails` and `allowed hosts: [https://]`. Set `WEB_ORIGIN` and `FRONTEND_URL` to `https://<frontend-domain>` (not `https://${{Frontend.RAILWAY_PUBLIC_DOMAIN}}` before the frontend has a public domain), then redeploy Backend.
+
+**NetworkError / upstream timed out on `/api/*`** — Frontend nginx cannot reach Backend over private networking. Common causes:
+
+1. **Stale backend IP after redeploy** — redeploy **Frontend** (temporary fix), or deploy the nginx `resolver [fd12::10]` + `$backend_upstream` pattern in `app/webReact/nginx.conf.template`.
+2. **IPv6 upstream timeout** — nginx may round-robin to the backend’s IPv6 private address while Ktor listens on IPv4 only (`0.0.0.0`). One request works (login), the next fails (registration). Fix: bind the API to `::` in `Application.kt` and/or set `resolver [fd12::10] ipv6=off` in nginx so proxy uses IPv4 only.
+
+Confirm `BACKEND_UPSTREAM=${{Backend.RAILWAY_PRIVATE_DOMAIN}}:8080` on Frontend.
+
 **Unnecessary rebuilds** — `watchPatterns` in `/railway.toml` and `/deploy/railway.frontend.toml` limit which file changes trigger each service.
 
 ## Local vs Railway
