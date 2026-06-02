@@ -11,6 +11,7 @@ data class AppConfig(
     val sessionDays: Long,
     val authDevMode: Boolean,
     val cookieSecure: Boolean,
+    val llm: LlmConfig,
 ) {
     companion object {
         fun fromEnvironment(): AppConfig {
@@ -35,6 +36,7 @@ data class AppConfig(
                 sessionDays = env("SESSION_DAYS", "30", dotEnv).toLong(),
                 authDevMode = authDevModeEnabled(dotEnv),
                 cookieSecure = cookieSecureEnabled(dotEnv, webOrigins, frontendUrl),
+                llm = LlmConfig.fromEnvironment(dotEnv, frontendUrl),
             )
         }
 

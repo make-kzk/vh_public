@@ -12,20 +12,28 @@ import jobs.vibehunt.config.AppConfig
 import jobs.vibehunt.db.DatabaseFactory
 import jobs.vibehunt.db.EmployerRepository
 import jobs.vibehunt.db.ReferenceRepository
+import jobs.vibehunt.db.SeekerPersonalProfileRepository
 import jobs.vibehunt.db.SeekerRepository
 import jobs.vibehunt.db.SurveyRepository
 import jobs.vibehunt.db.SessionRepository
 import jobs.vibehunt.db.UserRepository
 import jobs.vibehunt.domain.EmployerProfileService
+import jobs.vibehunt.domain.PersonalityProfileService
+import jobs.vibehunt.domain.PersonalityProfileValidator
+import jobs.vibehunt.domain.PersonalityPromptBuilder
 import jobs.vibehunt.domain.ProfileProvisioningService
 import jobs.vibehunt.domain.SeekerProfileService
 import jobs.vibehunt.domain.SurveyService
+import jobs.vibehunt.llm.LlmClientFactory
 import jobs.vibehunt.plugins.configureCors
 import jobs.vibehunt.plugins.configureSerialization
 import jobs.vibehunt.routes.authRoutes
 import jobs.vibehunt.routes.employerRoutes
 import jobs.vibehunt.routes.referenceRoutes
 import jobs.vibehunt.routes.seekerRoutes
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 fun main() {
     val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
@@ -50,7 +58,25 @@ fun Application.module() {
     val roleGuard = RoleGuard(config, sessionService)
     val surveyRepository = SurveyRepository()
     val surveyService = SurveyService(seekerRepository, surveyRepository)
-    val seekerProfileService = SeekerProfileService(seekerRepository, referenceRepository, surveyService)
+    val profileRepository = SeekerPersonalProfileRepository()
+    val llmClient = LlmClientFactory.create(config.llm)
+    val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    val personalityProfileService =
+        PersonalityProfileService(
+            seekerRepository = seekerRepository,
+            profileRepository = profileRepository,
+            surveyService = surveyService,
+            llmConfig = config.llm,
+            llmClient = llmClient,
+            promptBuilder = PersonalityPromptBuilder(),
+            validator = PersonalityProfileValidator(),
+            scope = coroutineScope,
+        )
+    surveyService.setProfileGenerationTrigger { userId ->
+        personalityProfileService.maybeTriggerGeneration(userId)
+    }
+    val seekerProfileService =
+        SeekerProfileService(seekerRepository, referenceRepository, surveyService, personalityProfileService)
     val employerProfileService = EmployerProfileService(employerRepository, referenceRepository)
 
     configureSerialization()
@@ -65,7 +91,7 @@ fun Application.module() {
         }
         authRoutes(config, userAuthService, sessionService)
         referenceRoutes(roleGuard, referenceRepository)
-        seekerRoutes(roleGuard, seekerProfileService, surveyService)
+        seekerRoutes(roleGuard, seekerProfileService, surveyService, personalityProfileService)
         employerRoutes(roleGuard, employerProfileService)
     }
 }

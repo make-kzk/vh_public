@@ -162,21 +162,25 @@ export interface PersonalitySectionDto {
   items: PersonalityItemDto[]
 }
 
+export type PersonalityProfileStatus = 'NOT_READY' | 'PROCESSING' | 'READY' | 'FAILED'
+
 export interface PersonalityPreviewDto {
-  title: string
-  description: string
-  profile: string
-  axisDominance: number
-  axisInfluence: number
-  axisStability: number
-  axisIntegrity: number
-  axisAutonomy: number
-  axisPace: number
-  categories: PersonalityCategoryDto[]
-  energySources: PersonalitySectionDto
-  stopFactors: PersonalitySectionDto
+  status: PersonalityProfileStatus
+  generationError?: string | null
   testsCompleted: number
   testsTotal: number
+  title?: string | null
+  description?: string | null
+  profile?: string | null
+  axisDominance?: number | null
+  axisInfluence?: number | null
+  axisStability?: number | null
+  axisIntegrity?: number | null
+  axisAutonomy?: number | null
+  axisPace?: number | null
+  categories?: PersonalityCategoryDto[] | null
+  energySources?: PersonalitySectionDto | null
+  stopFactors?: PersonalitySectionDto | null
 }
 
 export interface JobRecommendationDto {

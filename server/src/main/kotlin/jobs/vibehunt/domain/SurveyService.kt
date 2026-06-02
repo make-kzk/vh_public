@@ -2,8 +2,6 @@ package jobs.vibehunt.domain
 
 import jobs.vibehunt.db.SeekerRepository
 import jobs.vibehunt.db.SurveyRepository
-import jobs.vibehunt.fixtures.StubData
-import jobs.vibehunt.models.PersonalityPreviewDto
 import jobs.vibehunt.survey.SaveSurveyAnswersRequest
 import jobs.vibehunt.survey.SurveyDefinitionDto
 import jobs.vibehunt.survey.SurveyDetailDto
@@ -24,6 +22,11 @@ class SurveyService(
     private val surveyRepository: SurveyRepository,
 ) {
     private val json = Json { ignoreUnknownKeys = true }
+    private var profileGenerationTrigger: ((UUID) -> Unit)? = null
+
+    fun setProfileGenerationTrigger(trigger: (UUID) -> Unit) {
+        profileGenerationTrigger = trigger
+    }
 
     private val groupNames =
         mapOf(
@@ -135,8 +138,14 @@ class SurveyService(
                 questionsJson = survey.questionsJson,
                 answersJson = answersJson,
             )
-        return surveyRepository.completeResult(result.id, answersJson, calculated)
-            ?: error("Не удалось завершить опрос")
+        val completedResult =
+            surveyRepository.completeResult(result.id, answersJson, calculated)
+                ?: error("Не удалось завершить опрос")
+        val groups = listGroups(userId)
+        if (groups.testsCompleted >= groups.testsTotal) {
+            profileGenerationTrigger?.invoke(userId)
+        }
+        return completedResult
     }
 
     fun buildLlmContext(userId: UUID): SurveyLlmContextDto {
@@ -157,15 +166,6 @@ class SurveyService(
         return SurveyLlmContextDto(
             surveys = items,
             glossaryTerms = surveyRepository.listGlossaryTerms(),
-        )
-    }
-
-    fun personalityPreview(userId: UUID): PersonalityPreviewDto {
-        val groups = listGroups(userId)
-        val stub = StubData.personalityPreview()
-        return stub.copy(
-            testsCompleted = groups.testsCompleted,
-            testsTotal = groups.testsTotal,
         )
     }
 

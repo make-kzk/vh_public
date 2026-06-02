@@ -5,12 +5,19 @@ import jobs.vibehunt.models.JobRecommendationDto
 import jobs.vibehunt.models.PersonalityCategoryDto
 import jobs.vibehunt.models.PersonalityItemDto
 import jobs.vibehunt.models.PersonalityPreviewDto
+import jobs.vibehunt.models.PersonalityProfileStatus
 import jobs.vibehunt.models.PersonalitySectionDto
 import jobs.vibehunt.models.PersonalityTraitDto
+import jobs.vibehunt.models.PersonalityTraitCategoryJson
+import jobs.vibehunt.models.PersonalityTraitDetailsJson
+import jobs.vibehunt.models.PersonalityTraitJson
+import jobs.vibehunt.models.PersonalitySectionJson
+import jobs.vibehunt.models.SeekerPersonalProfileLlmOutput
 
 object StubData {
     fun personalityPreview(): PersonalityPreviewDto =
         PersonalityPreviewDto(
+            status = PersonalityProfileStatus.READY,
             title = "Стратегический аналитик",
             description =
                 "Вы сочетаете системное мышление с прагматичным подходом к решению задач. " +
@@ -98,6 +105,93 @@ object StubData {
             testsCompleted = 1,
             testsTotal = 3,
         )
+
+    fun personalityLlmOutput(): SeekerPersonalProfileLlmOutput {
+        val preview = personalityPreview()
+        fun category(key: String): PersonalityTraitCategoryJson {
+            val cat = preview.categories!!.first { it.key == key }
+            return PersonalityTraitCategoryJson(
+                description = cat.description,
+                traits =
+                    cat.traits.associate { trait ->
+                        trait.key to
+                            PersonalityTraitJson(
+                                label = trait.label,
+                                scalePosition = trait.scalePosition,
+                                leftPole = trait.leftPole,
+                                rightPole = trait.rightPole,
+                                details = PersonalityTraitDetailsJson(description = trait.description),
+                            )
+                    },
+            )
+        }
+        return SeekerPersonalProfileLlmOutput(
+            title = preview.title!!,
+            description = preview.description!!,
+            profile = preview.profile!!,
+            autonomy = "Высокая потребность в самостоятельности и доверии со стороны руководства.",
+            thinkingStyle = "Аналитический, системный подход с опорой на данные.",
+            burnoutRisk = "Умеренный риск при хронической перегрузке и отсутствии автономии.",
+            connections = category("connections"),
+            creativity =
+                PersonalityTraitCategoryJson(
+                    description = "Как вы генерируете идеи и подходите к инновациям.",
+                    traits =
+                        mapOf(
+                            "structured_vs_creative" to
+                                PersonalityTraitJson(
+                                    label = "Структурированный подход с элементами креативности",
+                                    scalePosition = 0.45,
+                                    leftPole = "Структура",
+                                    rightPole = "Креативность",
+                                    details =
+                                        PersonalityTraitDetailsJson(
+                                            description = "Предпочитаете опираться на проверенные методы, но открыты новым идеям.",
+                                        ),
+                                ),
+                        ),
+                ),
+            drive =
+                PersonalityTraitCategoryJson(
+                    description = "Что вас мотивирует и движет вперёд.",
+                    traits =
+                        mapOf(
+                            "achievement_vs_balance" to
+                                PersonalityTraitJson(
+                                    label = "Ориентация на достижения при сохранении баланса",
+                                    scalePosition = 0.65,
+                                    leftPole = "Баланс",
+                                    rightPole = "Достижения",
+                                    details =
+                                        PersonalityTraitDetailsJson(
+                                            description = "Стремитесь к результатам, но цените устойчивый темп работы.",
+                                        ),
+                                ),
+                        ),
+                ),
+            thinking = category("thinking"),
+            axisDominance = preview.axisDominance!!,
+            axisInfluence = preview.axisInfluence!!,
+            axisStability = preview.axisStability!!,
+            axisIntegrity = preview.axisIntegrity!!,
+            axisAutonomy = preview.axisAutonomy!!,
+            axisPace = preview.axisPace!!,
+            burnoutRiskOverload = 0.55,
+            burnoutRiskConflicts = 0.40,
+            burnoutRiskDemotivation = 0.35,
+            burnoutRiskStress = 0.50,
+            energySources =
+                PersonalitySectionJson(
+                    title = preview.energySources!!.title,
+                    items = preview.energySources!!.items,
+                ),
+            stopFactors =
+                PersonalitySectionJson(
+                    title = preview.stopFactors!!.title,
+                    items = preview.stopFactors!!.items,
+                ),
+        )
+    }
 
     fun jobRecommendations(): List<JobRecommendationDto> =
         listOf(

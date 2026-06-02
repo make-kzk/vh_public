@@ -159,6 +159,98 @@ data class UpdateJobProfileRequest(
 )
 
 @Serializable
+enum class PersonalityProfileStatus {
+    NOT_READY,
+    PROCESSING,
+    READY,
+    FAILED,
+}
+
+@Serializable
+data class PersonalityTraitDetailsJson(
+    val description: String,
+    @kotlinx.serialization.SerialName("good_day") val goodDay: String? = null,
+    @kotlinx.serialization.SerialName("bad_day") val badDay: String? = null,
+    @kotlinx.serialization.SerialName("succeed_through") val succeedThrough: List<String>? = null,
+)
+
+@Serializable
+data class PersonalityTraitJson(
+    val label: String,
+    @kotlinx.serialization.SerialName("scale_position") val scalePosition: Double,
+    @kotlinx.serialization.SerialName("left_pole") val leftPole: String,
+    @kotlinx.serialization.SerialName("right_pole") val rightPole: String,
+    val details: PersonalityTraitDetailsJson? = null,
+)
+
+@Serializable
+data class PersonalityTraitCategoryJson(
+    val description: String,
+    val traits: Map<String, PersonalityTraitJson>,
+)
+
+@Serializable
+data class PersonalitySectionJson(
+    val title: String,
+    val items: List<PersonalityItemDto>,
+)
+
+@Serializable
+data class SeekerPersonalProfileRecord(
+    val seekerId: Long,
+    val title: String?,
+    val description: String?,
+    val profile: String?,
+    val autonomy: String?,
+    val thinkingStyle: String?,
+    val burnoutRisk: String?,
+    val connections: String?,
+    val creativity: String?,
+    val drive: String?,
+    val thinking: String?,
+    val axisDominance: Double?,
+    val axisInfluence: Double?,
+    val axisStability: Double?,
+    val axisIntegrity: Double?,
+    val axisAutonomy: Double?,
+    val axisPace: Double?,
+    val burnoutRiskOverload: Double?,
+    val burnoutRiskConflicts: Double?,
+    val burnoutRiskDemotivation: Double?,
+    val burnoutRiskStress: Double?,
+    val energySources: String?,
+    val stopFactors: String?,
+    val generationStatus: PersonalityProfileStatus,
+    val generationError: String?,
+)
+
+@Serializable
+data class SeekerPersonalProfileLlmOutput(
+    val title: String,
+    val description: String,
+    val profile: String,
+    val autonomy: String? = null,
+    @kotlinx.serialization.SerialName("thinking_style") val thinkingStyle: String? = null,
+    @kotlinx.serialization.SerialName("burnout_risk") val burnoutRisk: String? = null,
+    val connections: PersonalityTraitCategoryJson,
+    val creativity: PersonalityTraitCategoryJson,
+    val drive: PersonalityTraitCategoryJson,
+    val thinking: PersonalityTraitCategoryJson,
+    @kotlinx.serialization.SerialName("axis_dominance") val axisDominance: Double,
+    @kotlinx.serialization.SerialName("axis_influence") val axisInfluence: Double,
+    @kotlinx.serialization.SerialName("axis_stability") val axisStability: Double,
+    @kotlinx.serialization.SerialName("axis_integrity") val axisIntegrity: Double,
+    @kotlinx.serialization.SerialName("axis_autonomy") val axisAutonomy: Double,
+    @kotlinx.serialization.SerialName("axis_pace") val axisPace: Double,
+    @kotlinx.serialization.SerialName("burnout_risk_overload") val burnoutRiskOverload: Double? = null,
+    @kotlinx.serialization.SerialName("burnout_risk_conflicts") val burnoutRiskConflicts: Double? = null,
+    @kotlinx.serialization.SerialName("burnout_risk_demotivation") val burnoutRiskDemotivation: Double? = null,
+    @kotlinx.serialization.SerialName("burnout_risk_stress") val burnoutRiskStress: Double? = null,
+    @kotlinx.serialization.SerialName("energy_sources") val energySources: PersonalitySectionJson,
+    @kotlinx.serialization.SerialName("stop_factors") val stopFactors: PersonalitySectionJson,
+)
+
+@Serializable
 data class PersonalityTraitDto(
     val key: String,
     val label: String,
@@ -189,20 +281,22 @@ data class PersonalitySectionDto(
 
 @Serializable
 data class PersonalityPreviewDto(
-    val title: String,
-    val description: String,
-    val profile: String,
-    val axisDominance: Double,
-    val axisInfluence: Double,
-    val axisStability: Double,
-    val axisIntegrity: Double,
-    val axisAutonomy: Double,
-    val axisPace: Double,
-    val categories: List<PersonalityCategoryDto>,
-    val energySources: PersonalitySectionDto,
-    val stopFactors: PersonalitySectionDto,
+    val status: PersonalityProfileStatus,
+    val generationError: String? = null,
     val testsCompleted: Int,
     val testsTotal: Int,
+    val title: String? = null,
+    val description: String? = null,
+    val profile: String? = null,
+    val axisDominance: Double? = null,
+    val axisInfluence: Double? = null,
+    val axisStability: Double? = null,
+    val axisIntegrity: Double? = null,
+    val axisAutonomy: Double? = null,
+    val axisPace: Double? = null,
+    val categories: List<PersonalityCategoryDto>? = null,
+    val energySources: PersonalitySectionDto? = null,
+    val stopFactors: PersonalitySectionDto? = null,
 )
 
 @Serializable

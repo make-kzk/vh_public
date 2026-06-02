@@ -118,6 +118,10 @@ export function fetchPersonalityPreview(): Promise<PersonalityPreviewDto> {
   return apiFetch('/api/seeker/personality-preview')
 }
 
+export function triggerPersonalityGeneration(): Promise<{ status: string }> {
+  return apiFetch('/api/seeker/personality/generate', { method: 'POST' })
+}
+
 export function fetchRecommendations(): Promise<JobRecommendationDto[]> {
   return apiFetch('/api/seeker/recommendations')
 }

@@ -8,6 +8,7 @@ import io.ktor.server.routing.*
 import jobs.vibehunt.auth.RoleGuard
 import jobs.vibehunt.auth.UserRole
 import jobs.vibehunt.db.ReferenceRepository
+import jobs.vibehunt.domain.PersonalityProfileService
 import jobs.vibehunt.domain.SeekerProfileService
 import jobs.vibehunt.domain.SurveyService
 import jobs.vibehunt.survey.SaveSurveyAnswersRequest
@@ -41,6 +42,7 @@ fun Route.seekerRoutes(
     roleGuard: RoleGuard,
     seekerProfileService: SeekerProfileService,
     surveyService: SurveyService,
+    personalityProfileService: PersonalityProfileService,
 ) {
     route("/api/seeker") {
         get("/dashboard") {
@@ -148,6 +150,17 @@ fun Route.seekerRoutes(
         get("/personality-preview") {
             val user = roleGuard.requireRole(call, UserRole.SEEKER) ?: return@get
             call.respond(seekerProfileService.personalityPreview(user.id))
+        }
+        post("/personality/generate") {
+            val user = roleGuard.requireRole(call, UserRole.SEEKER) ?: return@post
+            try {
+                personalityProfileService.triggerGeneration(user.id)
+                call.respond(mapOf("status" to "PROCESSING"))
+            } catch (e: IllegalStateException) {
+                call.respond(HttpStatusCode.Conflict, mapOf("message" to (e.message ?: "Генерация уже выполняется")))
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("message" to (e.message ?: "Ошибка")))
+            }
         }
         get("/personality/llm-context") {
             val user = roleGuard.requireRole(call, UserRole.SEEKER) ?: return@get

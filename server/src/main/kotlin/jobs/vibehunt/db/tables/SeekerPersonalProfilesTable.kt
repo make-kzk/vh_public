@@ -28,6 +28,8 @@ object SeekerPersonalProfilesTable : Table("seeker_personal_profiles") {
     val burnoutRiskStress = decimal("burnout_risk_stress", 3, 2).nullable()
     val energySources = text("energy_sources").nullable()
     val stopFactors = text("stop_factors").nullable()
+    val generationStatus = varchar("generation_status", 20)
+    val generationError = text("generation_error").nullable()
     val updatedAt = timestampWithTimeZone("updated_at")
 
     override val primaryKey = PrimaryKey(seekerId)
