@@ -153,6 +153,7 @@ export interface PersonalityTraitDto {
 export interface PersonalityCategoryDto {
   key: string
   description: string
+  topStrengthIndex: number
   traits: PersonalityTraitDto[]
 }
 

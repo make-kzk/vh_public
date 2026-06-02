@@ -23,10 +23,10 @@ class PersonalityPromptBuilder {
               "autonomy": "string — описание автономности (optional)",
               "thinking_style": "string — стиль мышления (optional)",
               "burnout_risk": "string — общий риск выгорания (optional)",
-              "connections": { "description": "string", "traits": { "<key>": { "label": "string", "scale_position": 0.0-1.0, "left_pole": "string", "right_pole": "string", "is_top_strength": false, "details": { "description": "string", "good_day": "string", "bad_day": "string", "succeed_through": ["string", "..."] } } } },
-              "creativity": { ... same structure as connections ... },
-              "drive": { ... same structure as connections ... },
-              "thinking": { ... same structure as connections ... },
+              "connections": { "description": "string", "top_strength_index": 0, "traits": [ { "label": "string", "scale_position": 0.0-1.0, "left_pole": "string", "right_pole": "string", "details": { "description": "string", "good_day": "string", "bad_day": "string", "succeed_through": ["string", "string", "string"] } }, ... ровно 4 объекта ] },
+              "creativity": { "description": "string", "top_strength_index": 0, "traits": [ ... ровно 3 объекта ] },
+              "drive": { "description": "string", "top_strength_index": 0, "traits": [ ... ровно 4 объекта ] },
+              "thinking": { "description": "string", "top_strength_index": 0, "traits": [ ... ровно 1 объект ] },
               "axis_dominance": 0.0-1.0,
               "axis_influence": 0.0-1.0,
               "axis_stability": 0.0-1.0,
@@ -46,12 +46,12 @@ class PersonalityPromptBuilder {
 
             Правила для категорий connections, creativity, drive, thinking:
             - description категории — вводный абзац по шаблону «Ваш раздел … показывает …» (что измеряет категория).
-            - connections и drive: 3–5 черт (traits); creativity: около 3; thinking: 1–3.
-            - label черты — заголовок в духе «Вы немного более {правый полюс}, чем {левый}» или «Вы {доминирующий полюс}» при сильном смещении (scale_position ближе к 0 или 1).
-            - left_pole и right_pole — короткие русские названия противоположных полюсов шкалы.
+            - traits — массив фиксированной длины: connections — ровно 4, creativity — ровно 3, drive — ровно 4, thinking — ровно 1.
+            - top_strength_index — целое число 0..N-1: индекс ЕДИНСТВЕННОЙ «главной силы» в массиве traits этой категории (самая выраженная черта).
+            - label черты — заголовок в духе «Вы немного более {правый полюс}, чем {левый}» или «Вы {доминирующий полюс}» при сильном смещении.
+            - left_pole и right_pole — короткие русские названия полюсов шкалы.
             - scale_position: 0 = левый полюс, 1 = правый полюс.
-            - is_top_strength: true у 0–2 самых выраженных черт внутри каждой категории (остальные false).
-            - details обязательны для каждой черты: description (абзац под заголовком), good_day, bad_day, succeed_through (2–4 коротких пункта без нумерации в тексте).
+            - details обязательны для каждой черты: description, good_day, bad_day, succeed_through (ровно 3 коротких пункта — чем вы добиваетесь успеха).
             """.trimIndent()
 
         val userPrompt =

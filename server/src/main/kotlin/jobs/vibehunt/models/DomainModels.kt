@@ -166,13 +166,26 @@ enum class PersonalityProfileStatus {
     FAILED,
 }
 
+object PersonalityTraitDetailsRules {
+    const val SUCCEED_THROUGH_SIZE = 3
+}
+
 @Serializable
 data class PersonalityTraitDetailsJson(
     val description: String,
     @kotlinx.serialization.SerialName("good_day") val goodDay: String? = null,
     @kotlinx.serialization.SerialName("bad_day") val badDay: String? = null,
     @kotlinx.serialization.SerialName("succeed_through") val succeedThrough: List<String>? = null,
-)
+) {
+    fun validateSucceedThrough(path: String) {
+        require(succeedThrough != null && succeedThrough.size == PersonalityTraitDetailsRules.SUCCEED_THROUGH_SIZE) {
+            "$path.details.succeed_through должен содержать ровно ${PersonalityTraitDetailsRules.SUCCEED_THROUGH_SIZE} пункта"
+        }
+        succeedThrough.forEachIndexed { index, item ->
+            require(item.isNotBlank()) { "$path.details.succeed_through[$index] не может быть пустым" }
+        }
+    }
+}
 
 @Serializable
 data class PersonalityTraitJson(
@@ -180,15 +193,35 @@ data class PersonalityTraitJson(
     @kotlinx.serialization.SerialName("scale_position") val scalePosition: Double,
     @kotlinx.serialization.SerialName("left_pole") val leftPole: String,
     @kotlinx.serialization.SerialName("right_pole") val rightPole: String,
-    @kotlinx.serialization.SerialName("is_top_strength") val isTopStrength: Boolean = false,
     val details: PersonalityTraitDetailsJson? = null,
 )
 
+/** Фиксированный набор черт: ровно [expectedTraitCount] элементов и ровно одна «главная сила» по индексу. */
 @Serializable
 data class PersonalityTraitCategoryJson(
     val description: String,
-    val traits: Map<String, PersonalityTraitJson>,
-)
+    @kotlinx.serialization.SerialName("top_strength_index") val topStrengthIndex: Int,
+    val traits: List<PersonalityTraitJson>,
+) {
+    fun expectedTraitCount(categoryKey: String): Int =
+        when (categoryKey) {
+            "connections" -> 4
+            "creativity" -> 3
+            "drive" -> 4
+            "thinking" -> 1
+            else -> error("Неизвестная категория: $categoryKey")
+        }
+
+    fun validateStructure(categoryKey: String) {
+        val expected = expectedTraitCount(categoryKey)
+        require(traits.size == expected) {
+            "$categoryKey.traits должен содержать ровно $expected элемент(ов), получено ${traits.size}"
+        }
+        require(topStrengthIndex in traits.indices) {
+            "$categoryKey.top_strength_index должен быть от 0 до ${traits.lastIndex}, получено $topStrengthIndex"
+        }
+    }
+}
 
 @Serializable
 data class PersonalitySectionJson(
@@ -269,6 +302,7 @@ data class PersonalityTraitDto(
 data class PersonalityCategoryDto(
     val key: String,
     val description: String,
+    @kotlinx.serialization.SerialName("top_strength_index") val topStrengthIndex: Int,
     val traits: List<PersonalityTraitDto>,
 )
 

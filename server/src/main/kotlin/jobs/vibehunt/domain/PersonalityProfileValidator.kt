@@ -38,6 +38,10 @@ class PersonalityProfileValidator {
         validateCategory(output.creativity, "creativity")
         validateCategory(output.drive, "drive")
         validateCategory(output.thinking, "thinking")
+        output.connections.validateStructure("connections")
+        output.creativity.validateStructure("creativity")
+        output.drive.validateStructure("drive")
+        output.thinking.validateStructure("thinking")
         validateSection(output.energySources, "energy_sources")
         validateSection(output.stopFactors, "stop_factors")
 
@@ -53,21 +57,18 @@ class PersonalityProfileValidator {
         name: String,
     ) {
         require(category.description.isNotBlank()) { "$name.description обязательно" }
-        require(category.traits.isNotEmpty()) { "$name.traits не может быть пустым" }
-        category.traits.forEach { (key, trait) ->
-            require(key.isNotBlank()) { "$name: пустой ключ trait" }
-            require(trait.label.isNotBlank()) { "$name.$key.label обязательно" }
-            require(trait.leftPole.isNotBlank()) { "$name.$key.left_pole обязательно" }
-            require(trait.rightPole.isNotBlank()) { "$name.$key.right_pole обязательно" }
-            requireScore(trait.scalePosition, "$name.$key.scale_position")
+        category.traits.forEachIndexed { index, trait ->
+            val path = "$name.traits[$index]"
+            require(trait.label.isNotBlank()) { "$path.label обязательно" }
+            require(trait.leftPole.isNotBlank()) { "$path.left_pole обязательно" }
+            require(trait.rightPole.isNotBlank()) { "$path.right_pole обязательно" }
+            requireScore(trait.scalePosition, "$path.scale_position")
             val details = trait.details
-            require(details != null) { "$name.$key.details обязательно" }
-            require(details.description.isNotBlank()) { "$name.$key.details.description обязательно" }
-            require(!details.goodDay.isNullOrBlank()) { "$name.$key.details.good_day обязательно" }
-            require(!details.badDay.isNullOrBlank()) { "$name.$key.details.bad_day обязательно" }
-            require(!details.succeedThrough.isNullOrEmpty()) {
-                "$name.$key.details.succeed_through должен содержать минимум 1 пункт"
-            }
+            require(details != null) { "$path.details обязательно" }
+            require(details.description.isNotBlank()) { "$path.details.description обязательно" }
+            require(!details.goodDay.isNullOrBlank()) { "$path.details.good_day обязательно" }
+            require(!details.badDay.isNullOrBlank()) { "$path.details.bad_day обязательно" }
+            details.validateSucceedThrough(path)
         }
     }
 

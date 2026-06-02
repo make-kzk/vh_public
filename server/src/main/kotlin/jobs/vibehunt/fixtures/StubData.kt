@@ -25,7 +25,6 @@ object StubData {
         goodDay: String,
         badDay: String,
         succeedThrough: List<String>,
-        isTopStrength: Boolean = false,
     ) = PersonalityTraitDto(
         key = key,
         label = label,
@@ -36,23 +35,44 @@ object StubData {
         goodDay = goodDay,
         badDay = badDay,
         succeedThrough = succeedThrough,
-        isTopStrength = isTopStrength,
+        isTopStrength = false,
     )
 
-    private fun traitJson(dto: PersonalityTraitDto) =
-        PersonalityTraitJson(
-            label = dto.label,
-            scalePosition = dto.scalePosition,
-            leftPole = dto.leftPole,
-            rightPole = dto.rightPole,
-            isTopStrength = dto.isTopStrength,
-            details =
-                PersonalityTraitDetailsJson(
-                    description = dto.description,
-                    goodDay = dto.goodDay,
-                    badDay = dto.badDay,
-                    succeedThrough = dto.succeedThrough,
-                ),
+    private fun categoryDto(
+        key: String,
+        description: String,
+        topStrengthIndex: Int,
+        traits: List<PersonalityTraitDto>,
+    ) = PersonalityCategoryDto(
+        key = key,
+        description = description,
+        topStrengthIndex = topStrengthIndex,
+        traits =
+            traits.mapIndexed { index, t ->
+                t.copy(key = "${key}_$index", isTopStrength = index == topStrengthIndex)
+            },
+    )
+
+    private fun categoryJson(cat: PersonalityCategoryDto) =
+        PersonalityTraitCategoryJson(
+            description = cat.description,
+            topStrengthIndex = cat.topStrengthIndex,
+            traits =
+                cat.traits.map { dto ->
+                    PersonalityTraitJson(
+                        label = dto.label,
+                        scalePosition = dto.scalePosition,
+                        leftPole = dto.leftPole,
+                        rightPole = dto.rightPole,
+                        details =
+                            PersonalityTraitDetailsJson(
+                                description = dto.description,
+                                goodDay = dto.goodDay,
+                                badDay = dto.badDay,
+                                succeedThrough = dto.succeedThrough,
+                            ),
+                    )
+                },
         )
 
     fun personalityPreview(): PersonalityPreviewDto =
@@ -73,11 +93,12 @@ object StubData {
             axisPace = 0.55,
             categories =
                 listOf(
-                    PersonalityCategoryDto(
+                    categoryDto(
                         key = "connections",
                         description =
                             "Ваш раздел СВЯЗИ показывает, насколько хорошо вы управляете отношениями " +
                                 "и насколько комфортно работаете самостоятельно.",
+                        topStrengthIndex = 3,
                         traits =
                             listOf(
                                 trait(
@@ -149,15 +170,15 @@ object StubData {
                                             "фокус на работе",
                                             "даёте другим быть услышанными",
                                         ),
-                                    isTopStrength = true,
                                 ),
                             ),
                     ),
-                    PersonalityCategoryDto(
+                    categoryDto(
                         key = "creativity",
                         description =
                             "Ваш раздел КРЕАТИВНОСТЬ показывает, насколько оригинально и инновационно вы мыслите " +
                                 "или насколько логичны и аналитичны в подходе.",
+                        topStrengthIndex = 1,
                         traits =
                             listOf(
                                 trait(
@@ -193,7 +214,6 @@ object StubData {
                                             "ориентация на результат",
                                             "гибкость взглядов",
                                         ),
-                                    isTopStrength = true,
                                 ),
                                 trait(
                                     key = "classical_vs_open",
@@ -214,10 +234,11 @@ object StubData {
                                 ),
                             ),
                     ),
-                    PersonalityCategoryDto(
+                    categoryDto(
                         key = "drive",
                         description =
                             "Ваш раздел ДРАЙВ показывает ваш уровень амбициозности и внутренней мотивации.",
+                        topStrengthIndex = 0,
                         traits =
                             listOf(
                                 trait(
@@ -236,7 +257,6 @@ object StubData {
                                             "реалистичная оценка способностей",
                                             "работа над слабыми местами",
                                         ),
-                                    isTopStrength = true,
                                 ),
                                 trait(
                                     key = "patient_vs_achiever",
@@ -291,11 +311,12 @@ object StubData {
                                 ),
                             ),
                     ),
-                    PersonalityCategoryDto(
+                    categoryDto(
                         key = "thinking",
                         description =
                             "Ваш раздел МЫШЛЕНИЕ показывает способности, которые вы используете при решении задач, " +
                                 "от интуитивного до гибкого аналитического подхода.",
+                        topStrengthIndex = 0,
                         traits =
                             listOf(
                                 trait(
@@ -314,7 +335,6 @@ object StubData {
                                             "объективность",
                                             "постоянное обучение",
                                         ),
-                                    isTopStrength = true,
                                 ),
                             ),
                     ),
@@ -357,10 +377,7 @@ object StubData {
         val preview = personalityPreview()
         fun category(key: String): PersonalityTraitCategoryJson {
             val cat = preview.categories!!.first { it.key == key }
-            return PersonalityTraitCategoryJson(
-                description = cat.description,
-                traits = cat.traits.associate { t -> t.key to traitJson(t) },
-            )
+            return categoryJson(cat)
         }
         return SeekerPersonalProfileLlmOutput(
             title = preview.title!!,

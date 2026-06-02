@@ -5,7 +5,6 @@ import jobs.vibehunt.models.PersonalityPreviewDto
 import jobs.vibehunt.models.PersonalityProfileStatus
 import jobs.vibehunt.models.PersonalitySectionDto
 import jobs.vibehunt.models.PersonalitySectionJson
-import jobs.vibehunt.models.PersonalityTraitCategoryJson
 import jobs.vibehunt.models.PersonalityTraitDto
 import jobs.vibehunt.models.SeekerPersonalProfileLlmOutput
 import jobs.vibehunt.models.SeekerPersonalProfileRecord
@@ -80,16 +79,17 @@ object PersonalityProfileMapper {
                 "thinking" to record.thinking,
             )
         return keys.mapNotNull { (key, raw) ->
-            raw?.let { categoryJson ->
-                val parsed = json.decodeFromString<PersonalityTraitCategoryJson>(categoryJson)
+            raw?.let { categoryRaw ->
+                val parsed = PersonalityCategoryParser.parse(categoryRaw, key)
                 PersonalityCategoryDto(
                     key = key,
                     description = parsed.description,
+                    topStrengthIndex = parsed.topStrengthIndex,
                     traits =
-                        parsed.traits.map { (traitKey, trait) ->
+                        parsed.traits.mapIndexed { index, trait ->
                             val details = trait.details
                             PersonalityTraitDto(
-                                key = traitKey,
+                                key = "${key}_$index",
                                 label = trait.label,
                                 scalePosition = trait.scalePosition,
                                 leftPole = trait.leftPole,
@@ -98,7 +98,7 @@ object PersonalityProfileMapper {
                                 goodDay = details?.goodDay ?: "",
                                 badDay = details?.badDay ?: "",
                                 succeedThrough = details?.succeedThrough ?: emptyList(),
-                                isTopStrength = trait.isTopStrength,
+                                isTopStrength = index == parsed.topStrengthIndex,
                             )
                         },
                 )

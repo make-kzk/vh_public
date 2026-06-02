@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { PersonalityCategoryDto } from '../../api/types'
 import { PersonalityTraitAccordion } from './PersonalityTraitAccordion'
 import { CATEGORY_LABELS, CATEGORY_ORDER } from './personalityLabels'
@@ -16,11 +16,16 @@ export function PersonalityCategoryTabs({ categories }: PersonalityCategoryTabsP
   }, [categories])
 
   const [activeKey, setActiveKey] = useState(ordered[0]?.key ?? '')
+  const [expandedTraitKey, setExpandedTraitKey] = useState('')
 
-  if (ordered.length === 0) return null
+  const active = ordered.find((c) => c.key === activeKey) ?? ordered[0]
 
-  const active =
-    ordered.find((c) => c.key === activeKey) ?? ordered[0]
+  useEffect(() => {
+    const category = ordered.find((c) => c.key === activeKey) ?? ordered[0]
+    setExpandedTraitKey(category?.traits[0]?.key ?? '')
+  }, [activeKey, ordered])
+
+  if (ordered.length === 0 || active == null) return null
 
   return (
     <section className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
@@ -57,7 +62,14 @@ export function PersonalityCategoryTabs({ categories }: PersonalityCategoryTabsP
         <p className="mt-2 text-sm text-neutral-600">{active.description}</p>
         <div className="mt-4 flex flex-col gap-3">
           {active.traits.map((trait) => (
-            <PersonalityTraitAccordion key={trait.key} trait={trait} />
+            <PersonalityTraitAccordion
+              key={trait.key}
+              trait={trait}
+              isOpen={expandedTraitKey === trait.key}
+              onToggle={() =>
+                setExpandedTraitKey((current) => (current === trait.key ? '' : trait.key))
+              }
+            />
           ))}
         </div>
       </div>
