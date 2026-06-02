@@ -243,11 +243,12 @@ data class PersonalityItemDto(
     fun validateItem(path: String) {
         require(title.isNotBlank()) { "$path.title обязательно" }
         require(description.isNotBlank()) { "$path.description обязательно" }
-        val words = personalityItemWordCount(description)
-        require(words in PersonalitySectionRules.ITEM_DESCRIPTION_MIN_WORDS..PersonalitySectionRules.ITEM_DESCRIPTION_MAX_WORDS) {
-            "$path.description должно содержать от ${PersonalitySectionRules.ITEM_DESCRIPTION_MIN_WORDS} " +
-                "до ${PersonalitySectionRules.ITEM_DESCRIPTION_MAX_WORDS} слов, получено $words"
-        }
+        // Временно отключено: ограничение 20–30 слов в description
+        // val words = personalityItemWordCount(description)
+        // require(words in PersonalitySectionRules.ITEM_DESCRIPTION_MIN_WORDS..PersonalitySectionRules.ITEM_DESCRIPTION_MAX_WORDS) {
+        //     "$path.description должно содержать от ${PersonalitySectionRules.ITEM_DESCRIPTION_MIN_WORDS} " +
+        //         "до ${PersonalitySectionRules.ITEM_DESCRIPTION_MAX_WORDS} слов, получено $words"
+        // }
     }
 }
 

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { fetchPersonalityPreview, triggerPersonalityGeneration } from '../../api/seekerApi'
 import type { PersonalityPreviewDto } from '../../api/types'
 import { FormSection } from '../../components/FormSection'
+import { DiscHexagonChart } from '../../components/personality/DiscHexagonChart'
 import { PersonalityCategoryTabs } from '../../components/personality/PersonalityCategoryTabs'
 
 const AXIS_LABELS: Record<string, string> = {
@@ -166,22 +167,10 @@ export function SeekerPersonalityPage() {
         <p className="text-sm text-neutral-700">{data.profile}</p>
       </FormSection>
       <FormSection title="Профиль DISC">
-        <div className="flex flex-col gap-3">
-          {axes.map((value, index) => (
-            <div key={axisKeys[index]}>
-              <div className="mb-1 flex justify-between text-sm">
-                <span>{AXIS_LABELS[axisKeys[index]]}</span>
-                <span>{Math.round(value * 100)}%</span>
-              </div>
-              <div className="h-2 rounded-full bg-neutral-100">
-                <div
-                  className="h-2 rounded-full bg-neutral-900"
-                  style={{ width: `${value * 100}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+        <DiscHexagonChart
+          labels={axisKeys.map((key) => AXIS_LABELS[key])}
+          values={axes}
+        />
       </FormSection>
       {categories.length > 0 && <PersonalityCategoryTabs categories={categories} />}
       {energySources != null && (
