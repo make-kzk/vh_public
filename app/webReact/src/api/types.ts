@@ -144,6 +144,10 @@ export interface PersonalityTraitDto {
   leftPole: string
   rightPole: string
   description: string
+  goodDay: string
+  badDay: string
+  succeedThrough: string[]
+  isTopStrength?: boolean
 }
 
 export interface PersonalityCategoryDto {

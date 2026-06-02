@@ -87,13 +87,18 @@ object PersonalityProfileMapper {
                     description = parsed.description,
                     traits =
                         parsed.traits.map { (traitKey, trait) ->
+                            val details = trait.details
                             PersonalityTraitDto(
                                 key = traitKey,
                                 label = trait.label,
                                 scalePosition = trait.scalePosition,
                                 leftPole = trait.leftPole,
                                 rightPole = trait.rightPole,
-                                description = trait.details?.description ?: trait.label,
+                                description = details?.description ?: trait.label,
+                                goodDay = details?.goodDay ?: "",
+                                badDay = details?.badDay ?: "",
+                                succeedThrough = details?.succeedThrough ?: emptyList(),
+                                isTopStrength = trait.isTopStrength,
                             )
                         },
                 )

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { fetchPersonalityPreview, triggerPersonalityGeneration } from '../../api/seekerApi'
 import type { PersonalityPreviewDto } from '../../api/types'
 import { FormSection } from '../../components/FormSection'
+import { PersonalityCategoryTabs } from '../../components/personality/PersonalityCategoryTabs'
 
 const AXIS_LABELS: Record<string, string> = {
   axisDominance: 'Доминантность',
@@ -33,7 +34,7 @@ export function SeekerPersonalityPage() {
   useEffect(() => {
     if (data == null) return
     if (data.testsCompleted < data.testsTotal) return
-    if (data.status === 'READY' || data.status === 'NOT_READY') return
+    if (data.status === 'READY' || data.status === 'NOT_READY' || data.status === 'FAILED') return
 
     const interval = window.setInterval(() => {
       void load().catch((e: Error) => setError(e.message))
@@ -111,7 +112,7 @@ export function SeekerPersonalityPage() {
             aria-hidden
           />
           <p className="text-sm text-neutral-700">
-            Формируем ваш личностный профиль… Это может занять до минуты.
+            Формируем ваш личностный профиль… Это может занять время.
           </p>
         </div>
       </div>
@@ -182,18 +183,7 @@ export function SeekerPersonalityPage() {
           ))}
         </div>
       </FormSection>
-      {categories.map((category) => (
-        <FormSection key={category.key} title={category.key} description={category.description}>
-          <div className="flex flex-col gap-4">
-            {category.traits.map((trait) => (
-              <div key={trait.key} className="rounded-lg bg-neutral-50 p-3">
-                <p className="font-medium text-sm">{trait.label}</p>
-                <p className="mt-1 text-sm text-neutral-600">{trait.description}</p>
-              </div>
-            ))}
-          </div>
-        </FormSection>
-      ))}
+      {categories.length > 0 && <PersonalityCategoryTabs categories={categories} />}
       {energySources != null && (
         <FormSection title={energySources.title}>
           <ul className="flex flex-col gap-3">

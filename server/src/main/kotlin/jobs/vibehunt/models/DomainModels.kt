@@ -180,6 +180,7 @@ data class PersonalityTraitJson(
     @kotlinx.serialization.SerialName("scale_position") val scalePosition: Double,
     @kotlinx.serialization.SerialName("left_pole") val leftPole: String,
     @kotlinx.serialization.SerialName("right_pole") val rightPole: String,
+    @kotlinx.serialization.SerialName("is_top_strength") val isTopStrength: Boolean = false,
     val details: PersonalityTraitDetailsJson? = null,
 )
 
@@ -258,6 +259,10 @@ data class PersonalityTraitDto(
     val leftPole: String,
     val rightPole: String,
     val description: String,
+    val goodDay: String,
+    val badDay: String,
+    val succeedThrough: List<String>,
+    val isTopStrength: Boolean = false,
 )
 
 @Serializable

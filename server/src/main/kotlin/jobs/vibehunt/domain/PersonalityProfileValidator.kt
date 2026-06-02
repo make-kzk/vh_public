@@ -57,7 +57,17 @@ class PersonalityProfileValidator {
         category.traits.forEach { (key, trait) ->
             require(key.isNotBlank()) { "$name: пустой ключ trait" }
             require(trait.label.isNotBlank()) { "$name.$key.label обязательно" }
+            require(trait.leftPole.isNotBlank()) { "$name.$key.left_pole обязательно" }
+            require(trait.rightPole.isNotBlank()) { "$name.$key.right_pole обязательно" }
             requireScore(trait.scalePosition, "$name.$key.scale_position")
+            val details = trait.details
+            require(details != null) { "$name.$key.details обязательно" }
+            require(details.description.isNotBlank()) { "$name.$key.details.description обязательно" }
+            require(!details.goodDay.isNullOrBlank()) { "$name.$key.details.good_day обязательно" }
+            require(!details.badDay.isNullOrBlank()) { "$name.$key.details.bad_day обязательно" }
+            require(!details.succeedThrough.isNullOrEmpty()) {
+                "$name.$key.details.succeed_through должен содержать минимум 1 пункт"
+            }
         }
     }
 

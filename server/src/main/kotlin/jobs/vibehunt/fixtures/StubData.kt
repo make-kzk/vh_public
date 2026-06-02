@@ -15,6 +15,46 @@ import jobs.vibehunt.models.PersonalitySectionJson
 import jobs.vibehunt.models.SeekerPersonalProfileLlmOutput
 
 object StubData {
+    private fun trait(
+        key: String,
+        label: String,
+        scalePosition: Double,
+        leftPole: String,
+        rightPole: String,
+        description: String,
+        goodDay: String,
+        badDay: String,
+        succeedThrough: List<String>,
+        isTopStrength: Boolean = false,
+    ) = PersonalityTraitDto(
+        key = key,
+        label = label,
+        scalePosition = scalePosition,
+        leftPole = leftPole,
+        rightPole = rightPole,
+        description = description,
+        goodDay = goodDay,
+        badDay = badDay,
+        succeedThrough = succeedThrough,
+        isTopStrength = isTopStrength,
+    )
+
+    private fun traitJson(dto: PersonalityTraitDto) =
+        PersonalityTraitJson(
+            label = dto.label,
+            scalePosition = dto.scalePosition,
+            leftPole = dto.leftPole,
+            rightPole = dto.rightPole,
+            isTopStrength = dto.isTopStrength,
+            details =
+                PersonalityTraitDetailsJson(
+                    description = dto.description,
+                    goodDay = dto.goodDay,
+                    badDay = dto.badDay,
+                    succeedThrough = dto.succeedThrough,
+                ),
+        )
+
     fun personalityPreview(): PersonalityPreviewDto =
         PersonalityPreviewDto(
             status = PersonalityProfileStatus.READY,
@@ -35,39 +75,246 @@ object StubData {
                 listOf(
                     PersonalityCategoryDto(
                         key = "connections",
-                        description = "Как вы управляете отношениями и работаете в команде.",
+                        description =
+                            "Ваш раздел СВЯЗИ показывает, насколько хорошо вы управляете отношениями " +
+                                "и насколько комфортно работаете самостоятельно.",
                         traits =
                             listOf(
-                                PersonalityTraitDto(
+                                trait(
                                     key = "diplomatic_vs_direct",
                                     label = "Вы немного более дипломатичны, чем прямолинейны",
                                     scalePosition = 0.55,
                                     leftPole = "Прямолинейность",
                                     rightPole = "Дипломатичность",
-                                    description = "Вы учитываете мнение других и стремитесь к справедливому разрешению конфликтов.",
+                                    description =
+                                        "Вы учитываете потребности других и стремитесь справедливо разрешать конфликты. " +
+                                            "Слушаете собеседников и честно высказываете своё мнение.",
+                                    goodDay = "Сильные социальные навыки",
+                                    badDay = "Избегаете давать критическую обратную связь",
+                                    succeedThrough =
+                                        listOf(
+                                            "умение видеть две точки зрения",
+                                            "ясное изложение своей позиции",
+                                            "внимательное слушание",
+                                        ),
                                 ),
-                                PersonalityTraitDto(
+                                trait(
+                                    key = "supportive_vs_autonomous",
+                                    label = "Вы немного более поддерживающи, чем автономны",
+                                    scalePosition = 0.6,
+                                    leftPole = "Автономность",
+                                    rightPole = "Поддержка",
+                                    description =
+                                        "У вас есть своё мнение, но вы цените людей вокруг и хорошо слышите их точку зрения.",
+                                    goodDay = "Естественно поддерживаете коллег",
+                                    badDay = "Слишком сильно подстраиваетесь под чужие потребности",
+                                    succeedThrough =
+                                        listOf(
+                                            "самостоятельность при нужности команде",
+                                            "работа в интересах группы",
+                                            "учёт внешних мнений",
+                                        ),
+                                ),
+                                trait(
+                                    key = "emotive_vs_balanced",
+                                    label = "Вы эмоциональны",
+                                    scalePosition = 0.72,
+                                    leftPole = "Сбалансированность",
+                                    rightPole = "Эмоциональность",
+                                    description =
+                                        "Вы искренне переживаете за своё дело, и это заметно в вашем отношении к работе.",
+                                    goodDay = "Чувствительны к важным для вас вещам",
+                                    badDay = "Слишком увлечённо относитесь к задачам",
+                                    succeedThrough =
+                                        listOf(
+                                            "забота о том, что делаете",
+                                            "полное вовлечение",
+                                            "самокритичность",
+                                        ),
+                                ),
+                                trait(
                                     key = "reserved_vs_sociable",
                                     label = "Вы сдержанны",
                                     scalePosition = 0.25,
                                     leftPole = "Сдержанность",
                                     rightPole = "Общительность",
-                                    description = "Предпочитаете работать с знакомыми людьми и комфортно чувствуете себя в одиночной работе.",
+                                    description =
+                                        "Готовы заводить новые контакты при необходимости, но предпочитаете работать с знакомыми людьми " +
+                                            "и комфортно чувствуете себя в одиночной работе.",
+                                    goodDay = "Избегаете лишних социальных отвлечений",
+                                    badDay = "Некомфортно в больших командных средах",
+                                    succeedThrough =
+                                        listOf(
+                                            "прагматичное расширение связей",
+                                            "фокус на работе",
+                                            "даёте другим быть услышанными",
+                                        ),
+                                    isTopStrength = true,
+                                ),
+                            ),
+                    ),
+                    PersonalityCategoryDto(
+                        key = "creativity",
+                        description =
+                            "Ваш раздел КРЕАТИВНОСТЬ показывает, насколько оригинально и инновационно вы мыслите " +
+                                "или насколько логичны и аналитичны в подходе.",
+                        traits =
+                            listOf(
+                                trait(
+                                    key = "focused_vs_adaptable",
+                                    label = "Вы сфокусированы",
+                                    scalePosition = 0.35,
+                                    leftPole = "Фокус",
+                                    rightPole = "Адаптивность",
+                                    description =
+                                        "Чаще держите фокус на задаче или одном вопросе, чтобы найти простые практичные решения в зоне комфорта.",
+                                    goodDay = "Лучше всего работаете с дедлайном",
+                                    badDay = "Можете застрять в деталях",
+                                    succeedThrough =
+                                        listOf(
+                                            "умение концентрироваться",
+                                            "структурированный подход",
+                                            "уважение к правилам",
+                                        ),
+                                ),
+                                trait(
+                                    key = "pragmatic_vs_innovative",
+                                    label = "Вы прагматичны",
+                                    scalePosition = 0.4,
+                                    leftPole = "Прагматизм",
+                                    rightPole = "Инновации",
+                                    description =
+                                        "Предпочитаете проверенные практичные решения, но остаётесь открыты к инновациям.",
+                                    goodDay = "Процветаете в привычной среде",
+                                    badDay = "Избегаете нестандартного мышления",
+                                    succeedThrough =
+                                        listOf(
+                                            "практичность",
+                                            "ориентация на результат",
+                                            "гибкость взглядов",
+                                        ),
+                                    isTopStrength = true,
+                                ),
+                                trait(
+                                    key = "classical_vs_open",
+                                    label = "Вы классичны в подходе",
+                                    scalePosition = 0.45,
+                                    leftPole = "Классика",
+                                    rightPole = "Открытость опыту",
+                                    description =
+                                        "Цените привычное и предсказуемое, но иногда приветствуете новые идеи.",
+                                    goodDay = "Уважительно сохраняете традиции",
+                                    badDay = "Склонны сопротивляться изменениям",
+                                    succeedThrough =
+                                        listOf(
+                                            "простота решений",
+                                            "прагматичный подход",
+                                            "надёжность",
+                                        ),
+                                ),
+                            ),
+                    ),
+                    PersonalityCategoryDto(
+                        key = "drive",
+                        description =
+                            "Ваш раздел ДРАЙВ показывает ваш уровень амбициозности и внутренней мотивации.",
+                        traits =
+                            listOf(
+                                trait(
+                                    key = "modest_vs_confident",
+                                    label = "Вы скромны",
+                                    scalePosition = 0.3,
+                                    leftPole = "Скромность",
+                                    rightPole = "Уверенность",
+                                    description =
+                                        "Понимаете, что уверенность не равна компетентности, и постоянно развиваете навыки.",
+                                    goodDay = "Укрепляете уверенность через компетентность",
+                                    badDay = "Недостаточно продвигаете свои достижения",
+                                    succeedThrough =
+                                        listOf(
+                                            "не принимаете успех как должное",
+                                            "реалистичная оценка способностей",
+                                            "работа над слабыми местами",
+                                        ),
+                                    isTopStrength = true,
+                                ),
+                                trait(
+                                    key = "patient_vs_achiever",
+                                    label = "Вы терпеливы",
+                                    scalePosition = 0.38,
+                                    leftPole = "Терпение",
+                                    rightPole = "Достижения",
+                                    description =
+                                        "Работаете усердно, но карьера не поглощает всю жизнь; даёте возможностям приходить сами.",
+                                    goodDay = "Довольны тем, что имеете",
+                                    badDay = "Не всегда проявляете инициативу",
+                                    succeedThrough =
+                                        listOf(
+                                            "жизнь в моменте",
+                                            "умение серьёзно относиться к делу вовремя",
+                                            "учитесь на опыте других",
+                                        ),
+                                ),
+                                trait(
+                                    key = "relaxed_vs_disciplined",
+                                    label = "Вы расслаблены в темпе",
+                                    scalePosition = 0.42,
+                                    leftPole = "Расслабленность",
+                                    rightPole = "Дисциплина",
+                                    description =
+                                        "Любите рамки и план, но не зацикливаетесь на деталях и умеете делегировать.",
+                                    goodDay = "Хорошо расставляете приоритеты",
+                                    badDay = "Можете оставлять задачи незавершёнными",
+                                    succeedThrough =
+                                        listOf(
+                                            "знание, когда взять контроль, а когда отпустить",
+                                            "гибкость",
+                                            "умение идти на компромисс",
+                                        ),
+                                ),
+                                trait(
+                                    key = "independent_vs_dutiful",
+                                    label = "Вы исполнительны",
+                                    scalePosition = 0.68,
+                                    leftPole = "Независимость",
+                                    rightPole = "Исполнительность",
+                                    description =
+                                        "Чувствуете лояльность и выполняете поручения; отзывчивы в командной работе.",
+                                    goodDay = "Согласны следовать правилам и договорённостям",
+                                    badDay = "Сложно сказать «нет» или оспорить авторитет",
+                                    succeedThrough =
+                                        listOf(
+                                            "надёжность",
+                                            "предсказуемость",
+                                            "командная ориентация",
+                                        ),
                                 ),
                             ),
                     ),
                     PersonalityCategoryDto(
                         key = "thinking",
-                        description = "Способности, которые вы используете при решении задач.",
+                        description =
+                            "Ваш раздел МЫШЛЕНИЕ показывает способности, которые вы используете при решении задач, " +
+                                "от интуитивного до гибкого аналитического подхода.",
                         traits =
                             listOf(
-                                PersonalityTraitDto(
+                                trait(
                                     key = "intuitive_vs_agile",
                                     label = "Вы высоко гибки в мышлении",
                                     scalePosition = 0.85,
                                     leftPole = "Интуиция",
                                     rightPole = "Гибкость",
-                                    description = "Быстро обучаетесь и решаете сложные задачи логически и аналитически.",
+                                    description =
+                                        "Быстро обучаетесь и решаете сложные задачи логически и аналитически.",
+                                    goodDay = "Природный навык решения проблем",
+                                    badDay = "Можете быть ограничены жаждой структуры",
+                                    succeedThrough =
+                                        listOf(
+                                            "рациональный подход к задачам",
+                                            "объективность",
+                                            "постоянное обучение",
+                                        ),
+                                    isTopStrength = true,
                                 ),
                             ),
                     ),
@@ -112,17 +359,7 @@ object StubData {
             val cat = preview.categories!!.first { it.key == key }
             return PersonalityTraitCategoryJson(
                 description = cat.description,
-                traits =
-                    cat.traits.associate { trait ->
-                        trait.key to
-                            PersonalityTraitJson(
-                                label = trait.label,
-                                scalePosition = trait.scalePosition,
-                                leftPole = trait.leftPole,
-                                rightPole = trait.rightPole,
-                                details = PersonalityTraitDetailsJson(description = trait.description),
-                            )
-                    },
+                traits = cat.traits.associate { t -> t.key to traitJson(t) },
             )
         }
         return SeekerPersonalProfileLlmOutput(
@@ -133,42 +370,8 @@ object StubData {
             thinkingStyle = "Аналитический, системный подход с опорой на данные.",
             burnoutRisk = "Умеренный риск при хронической перегрузке и отсутствии автономии.",
             connections = category("connections"),
-            creativity =
-                PersonalityTraitCategoryJson(
-                    description = "Как вы генерируете идеи и подходите к инновациям.",
-                    traits =
-                        mapOf(
-                            "structured_vs_creative" to
-                                PersonalityTraitJson(
-                                    label = "Структурированный подход с элементами креативности",
-                                    scalePosition = 0.45,
-                                    leftPole = "Структура",
-                                    rightPole = "Креативность",
-                                    details =
-                                        PersonalityTraitDetailsJson(
-                                            description = "Предпочитаете опираться на проверенные методы, но открыты новым идеям.",
-                                        ),
-                                ),
-                        ),
-                ),
-            drive =
-                PersonalityTraitCategoryJson(
-                    description = "Что вас мотивирует и движет вперёд.",
-                    traits =
-                        mapOf(
-                            "achievement_vs_balance" to
-                                PersonalityTraitJson(
-                                    label = "Ориентация на достижения при сохранении баланса",
-                                    scalePosition = 0.65,
-                                    leftPole = "Баланс",
-                                    rightPole = "Достижения",
-                                    details =
-                                        PersonalityTraitDetailsJson(
-                                            description = "Стремитесь к результатам, но цените устойчивый темп работы.",
-                                        ),
-                                ),
-                        ),
-                ),
+            creativity = category("creativity"),
+            drive = category("drive"),
             thinking = category("thinking"),
             axisDominance = preview.axisDominance!!,
             axisInfluence = preview.axisInfluence!!,
