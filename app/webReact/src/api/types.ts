@@ -167,6 +167,18 @@ export interface PersonalitySectionDto {
   items: PersonalityItemDto[]
 }
 
+/** Ровно 3 источника энергии (см. серверные PersonalitySectionRules). */
+export interface EnergySourcesSectionDto {
+  title: 'Источники энергии'
+  items: [PersonalityItemDto, PersonalityItemDto, PersonalityItemDto]
+}
+
+/** Ровно 2 стоп-фактора (см. серверные PersonalitySectionRules). */
+export interface StopFactorsSectionDto {
+  title: 'Стоп-факторы'
+  items: [PersonalityItemDto, PersonalityItemDto]
+}
+
 export type PersonalityProfileStatus = 'NOT_READY' | 'PROCESSING' | 'READY' | 'FAILED'
 
 export interface PersonalityPreviewDto {
@@ -184,8 +196,8 @@ export interface PersonalityPreviewDto {
   axisAutonomy?: number | null
   axisPace?: number | null
   categories?: PersonalityCategoryDto[] | null
-  energySources?: PersonalitySectionDto | null
-  stopFactors?: PersonalitySectionDto | null
+  energySources?: EnergySourcesSectionDto | null
+  stopFactors?: StopFactorsSectionDto | null
 }
 
 export interface JobRecommendationDto {

@@ -223,8 +223,74 @@ data class PersonalityTraitCategoryJson(
     }
 }
 
+object PersonalitySectionRules {
+    const val ENERGY_SOURCES_COUNT = 3
+    const val STOP_FACTORS_COUNT = 2
+    const val ENERGY_SOURCES_TITLE = "Источники энергии"
+    const val STOP_FACTORS_TITLE = "Стоп-факторы"
+    const val ITEM_DESCRIPTION_MIN_WORDS = 20
+    const val ITEM_DESCRIPTION_MAX_WORDS = 30
+}
+
+fun personalityItemWordCount(text: String): Int =
+    text.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }.size
+
 @Serializable
-data class PersonalitySectionJson(
+data class PersonalityItemDto(
+    val title: String,
+    val description: String,
+) {
+    fun validateItem(path: String) {
+        require(title.isNotBlank()) { "$path.title обязательно" }
+        require(description.isNotBlank()) { "$path.description обязательно" }
+        val words = personalityItemWordCount(description)
+        require(words in PersonalitySectionRules.ITEM_DESCRIPTION_MIN_WORDS..PersonalitySectionRules.ITEM_DESCRIPTION_MAX_WORDS) {
+            "$path.description должно содержать от ${PersonalitySectionRules.ITEM_DESCRIPTION_MIN_WORDS} " +
+                "до ${PersonalitySectionRules.ITEM_DESCRIPTION_MAX_WORDS} слов, получено $words"
+        }
+    }
+}
+
+/** Ровно 3 источника энергии; title фиксирован. */
+@Serializable
+data class EnergySourcesJson(
+    val title: String,
+    val items: List<PersonalityItemDto>,
+) {
+    fun validateStructure() {
+        require(title == PersonalitySectionRules.ENERGY_SOURCES_TITLE) {
+            "energy_sources.title должен быть «${PersonalitySectionRules.ENERGY_SOURCES_TITLE}»"
+        }
+        require(items.size == PersonalitySectionRules.ENERGY_SOURCES_COUNT) {
+            "energy_sources.items должен содержать ровно ${PersonalitySectionRules.ENERGY_SOURCES_COUNT} элемента, получено ${items.size}"
+        }
+        items.forEachIndexed { index, item -> item.validateItem("energy_sources.items[$index]") }
+    }
+
+    fun toSectionDto(): PersonalitySectionDto = PersonalitySectionDto(title = title, items = items)
+}
+
+/** Ровно 2 стоп-фактора; title фиксирован. */
+@Serializable
+data class StopFactorsJson(
+    val title: String,
+    val items: List<PersonalityItemDto>,
+) {
+    fun validateStructure() {
+        require(title == PersonalitySectionRules.STOP_FACTORS_TITLE) {
+            "stop_factors.title должен быть «${PersonalitySectionRules.STOP_FACTORS_TITLE}»"
+        }
+        require(items.size == PersonalitySectionRules.STOP_FACTORS_COUNT) {
+            "stop_factors.items должен содержать ровно ${PersonalitySectionRules.STOP_FACTORS_COUNT} элемента, получено ${items.size}"
+        }
+        items.forEachIndexed { index, item -> item.validateItem("stop_factors.items[$index]") }
+    }
+
+    fun toSectionDto(): PersonalitySectionDto = PersonalitySectionDto(title = title, items = items)
+}
+
+@Serializable
+data class PersonalitySectionDto(
     val title: String,
     val items: List<PersonalityItemDto>,
 )
@@ -280,8 +346,8 @@ data class SeekerPersonalProfileLlmOutput(
     @kotlinx.serialization.SerialName("burnout_risk_conflicts") val burnoutRiskConflicts: Double? = null,
     @kotlinx.serialization.SerialName("burnout_risk_demotivation") val burnoutRiskDemotivation: Double? = null,
     @kotlinx.serialization.SerialName("burnout_risk_stress") val burnoutRiskStress: Double? = null,
-    @kotlinx.serialization.SerialName("energy_sources") val energySources: PersonalitySectionJson,
-    @kotlinx.serialization.SerialName("stop_factors") val stopFactors: PersonalitySectionJson,
+    @kotlinx.serialization.SerialName("energy_sources") val energySources: EnergySourcesJson,
+    @kotlinx.serialization.SerialName("stop_factors") val stopFactors: StopFactorsJson,
 )
 
 @Serializable
@@ -304,18 +370,6 @@ data class PersonalityCategoryDto(
     val description: String,
     @kotlinx.serialization.SerialName("top_strength_index") val topStrengthIndex: Int,
     val traits: List<PersonalityTraitDto>,
-)
-
-@Serializable
-data class PersonalityItemDto(
-    val title: String,
-    val description: String,
-)
-
-@Serializable
-data class PersonalitySectionDto(
-    val title: String,
-    val items: List<PersonalityItemDto>,
 )
 
 @Serializable

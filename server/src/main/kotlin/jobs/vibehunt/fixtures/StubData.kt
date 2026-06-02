@@ -11,7 +11,9 @@ import jobs.vibehunt.models.PersonalityTraitDto
 import jobs.vibehunt.models.PersonalityTraitCategoryJson
 import jobs.vibehunt.models.PersonalityTraitDetailsJson
 import jobs.vibehunt.models.PersonalityTraitJson
-import jobs.vibehunt.models.PersonalitySectionJson
+import jobs.vibehunt.models.EnergySourcesJson
+import jobs.vibehunt.models.PersonalitySectionRules
+import jobs.vibehunt.models.StopFactorsJson
 import jobs.vibehunt.models.SeekerPersonalProfileLlmOutput
 
 object StubData {
@@ -341,31 +343,47 @@ object StubData {
                 ),
             energySources =
                 PersonalitySectionDto(
-                    title = "Источники энергии",
+                    title = PersonalitySectionRules.ENERGY_SOURCES_TITLE,
                     items =
                         listOf(
                             PersonalityItemDto(
                                 title = "Амбициозные цели и вызовы",
-                                description = "Максимальная отдача при масштабных задачах и реальном влиянии.",
+                                description =
+                                    "Вы достигаете пика энергии, когда работаете над масштабными целями с измеримым влиянием " +
+                                    "на команду и бизнес, видите прогресс и можете нести ответственность за ключевые решения " +
+                                    "без лишнего контроля.",
                             ),
                             PersonalityItemDto(
                                 title = "Автономность и доверие",
-                                description = "Свобода принятия решений — ключ к продуктивности.",
+                                description =
+                                    "Свобода выбора методов и доверие руководства заряжают вас; микроинструкции и постоянные " +
+                                    "согласования, наоборот, быстро истощают мотивацию и снижают качество результата в долгосрочной " +
+                                    "перспективе работы.",
+                            ),
+                            PersonalityItemDto(
+                                title = "Смысл и развитие",
+                                description =
+                                    "Смысловая связь задач с миссией компании и возможность учиться новому в рабочем процессе дают " +
+                                    "устойчивый приток сил даже в периоды высокой нагрузки и неопределённости на рынке.",
                             ),
                         ),
                 ),
             stopFactors =
                 PersonalitySectionDto(
-                    title = "Стоп-факторы — красные флаги",
+                    title = PersonalitySectionRules.STOP_FACTORS_TITLE,
                     items =
                         listOf(
                             PersonalityItemDto(
                                 title = "Микроменеджмент",
-                                description = "Избыточный контроль резко снижает мотивацию.",
+                                description =
+                                    "Избыточный контроль каждого шага, отчёты ради отчётов и отсутствие полномочий принимать " +
+                                    "решения подрывают вашу вовлечённость и ведут к быстрому эмоциональному выгоранию в роли.",
                             ),
                             PersonalityItemDto(
                                 title = "Размытые цели",
-                                description = "Отсутствие чётких приоритетов — главный источник стресса.",
+                                description =
+                                    "Размытые приоритеты, частая смена целей без объяснений и хаотичные процессы создают хронический " +
+                                    "стресс и ощущение бессмысленной траты времени, которое сложно компенсировать даже высокой зарплатой.",
                             ),
                         ),
                 ),
@@ -401,12 +419,12 @@ object StubData {
             burnoutRiskDemotivation = 0.35,
             burnoutRiskStress = 0.50,
             energySources =
-                PersonalitySectionJson(
+                EnergySourcesJson(
                     title = preview.energySources!!.title,
                     items = preview.energySources!!.items,
                 ),
             stopFactors =
-                PersonalitySectionJson(
+                StopFactorsJson(
                     title = preview.stopFactors!!.title,
                     items = preview.stopFactors!!.items,
                 ),

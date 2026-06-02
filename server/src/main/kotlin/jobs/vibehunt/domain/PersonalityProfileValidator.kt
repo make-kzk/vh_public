@@ -42,8 +42,8 @@ class PersonalityProfileValidator {
         output.creativity.validateStructure("creativity")
         output.drive.validateStructure("drive")
         output.thinking.validateStructure("thinking")
-        validateSection(output.energySources, "energy_sources")
-        validateSection(output.stopFactors, "stop_factors")
+        output.energySources.validateStructure()
+        output.stopFactors.validateStructure()
 
         return output
     }
@@ -72,15 +72,4 @@ class PersonalityProfileValidator {
         }
     }
 
-    private fun validateSection(
-        section: jobs.vibehunt.models.PersonalitySectionJson,
-        name: String,
-    ) {
-        require(section.title.isNotBlank()) { "$name.title обязательно" }
-        require(section.items.isNotEmpty()) { "$name.items не может быть пустым" }
-        section.items.forEach { item ->
-            require(item.title.isNotBlank()) { "$name: пустой title элемента" }
-            require(item.description.isNotBlank()) { "$name: пустой description элемента" }
-        }
-    }
 }

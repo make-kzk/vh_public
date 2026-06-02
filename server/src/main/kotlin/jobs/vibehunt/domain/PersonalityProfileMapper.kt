@@ -3,8 +3,9 @@ package jobs.vibehunt.domain
 import jobs.vibehunt.models.PersonalityCategoryDto
 import jobs.vibehunt.models.PersonalityPreviewDto
 import jobs.vibehunt.models.PersonalityProfileStatus
+import jobs.vibehunt.models.EnergySourcesJson
 import jobs.vibehunt.models.PersonalitySectionDto
-import jobs.vibehunt.models.PersonalitySectionJson
+import jobs.vibehunt.models.StopFactorsJson
 import jobs.vibehunt.models.PersonalityTraitDto
 import jobs.vibehunt.models.SeekerPersonalProfileLlmOutput
 import jobs.vibehunt.models.SeekerPersonalProfileRecord
@@ -20,8 +21,8 @@ object PersonalityProfileMapper {
         testsTotal: Int,
     ): PersonalityPreviewDto {
         val categories = buildCategories(record)
-        val energySources = record.energySources?.let { parseSection(it) }
-        val stopFactors = record.stopFactors?.let { parseSection(it) }
+        val energySources = record.energySources?.let { parseEnergySources(it) }
+        val stopFactors = record.stopFactors?.let { parseStopFactors(it) }
         return PersonalityPreviewDto(
             status = PersonalityProfileStatus.READY,
             testsCompleted = testsCompleted,
@@ -106,8 +107,9 @@ object PersonalityProfileMapper {
         }
     }
 
-    private fun parseSection(raw: String): PersonalitySectionDto {
-        val section = json.decodeFromString<PersonalitySectionJson>(raw)
-        return PersonalitySectionDto(title = section.title, items = section.items)
-    }
+    private fun parseEnergySources(raw: String): PersonalitySectionDto =
+        json.decodeFromString<EnergySourcesJson>(raw).toSectionDto()
+
+    private fun parseStopFactors(raw: String): PersonalitySectionDto =
+        json.decodeFromString<StopFactorsJson>(raw).toSectionDto()
 }

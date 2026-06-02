@@ -37,8 +37,15 @@ class PersonalityPromptBuilder {
               "burnout_risk_conflicts": 0.0-1.0 (optional),
               "burnout_risk_demotivation": 0.0-1.0 (optional),
               "burnout_risk_stress": 0.0-1.0 (optional),
-              "energy_sources": { "title": "string", "items": [{ "title": "string", "description": "string" }] },
-              "stop_factors": { "title": "string", "items": [{ "title": "string", "description": "string" }] }
+              "energy_sources": { "title": "Источники энергии", "items": [
+                { "title": "string", "description": "string — ровно 20–30 слов" },
+                { "title": "string", "description": "string — ровно 20–30 слов" },
+                { "title": "string", "description": "string — ровно 20–30 слов" }
+              ] },
+              "stop_factors": { "title": "Стоп-факторы", "items": [
+                { "title": "string", "description": "string — ровно 20–30 слов" },
+                { "title": "string", "description": "string — ровно 20–30 слов" }
+              ] }
             }
 
             Используй термины из глоссария. Опирайся на calculated_results каждого опроса.
@@ -52,6 +59,11 @@ class PersonalityPromptBuilder {
             - left_pole и right_pole — короткие русские названия полюсов шкалы.
             - scale_position: 0 = левый полюс, 1 = правый полюс.
             - details обязательны для каждой черты: description, good_day, bad_day, succeed_through (ровно 3 коротких пункта — чем вы добиваетесь успеха).
+
+            Правила для energy_sources и stop_factors:
+            - energy_sources.title — строго «Источники энергии»; items — ровно 3 объекта (ни больше, ни меньше).
+            - stop_factors.title — строго «Стоп-факторы» (не «факторы торможения» и не другие формулировки); items — ровно 2 объекта.
+            - У каждого элемента: title — короткий заголовок; description — связный текст ровно из 20–30 слов (считай слова по пробелам).
             """.trimIndent()
 
         val userPrompt =
