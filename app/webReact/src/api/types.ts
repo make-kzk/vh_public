@@ -189,6 +189,9 @@ export interface PersonalityPreviewDto {
   title?: string | null
   description?: string | null
   profile?: string | null
+  autonomy?: string | null
+  thinkingStyle?: string | null
+  burnoutRisk?: string | null
   axisDominance?: number | null
   axisInfluence?: number | null
   axisStability?: number | null

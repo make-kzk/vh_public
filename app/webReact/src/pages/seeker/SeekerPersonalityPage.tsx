@@ -164,7 +164,31 @@ export function SeekerPersonalityPage() {
       </div>
       {testsBanner}
       <FormSection title={data.title ?? ''} description={data.description ?? undefined}>
-        <p className="text-sm text-neutral-700">{data.profile}</p>
+        {data.profile != null && (
+          <p className="text-sm text-neutral-700">{data.profile}</p>
+        )}
+        {(data.autonomy != null || data.thinkingStyle != null || data.burnoutRisk != null) && (
+          <dl className="grid gap-4 sm:grid-cols-3">
+            {data.autonomy != null && (
+              <div>
+                <dt className="font-medium text-sm">Автономность</dt>
+                <dd className="mt-1 text-sm text-neutral-600">{data.autonomy}</dd>
+              </div>
+            )}
+            {data.thinkingStyle != null && (
+              <div>
+                <dt className="font-medium text-sm">Стиль мышления</dt>
+                <dd className="mt-1 text-sm text-neutral-600">{data.thinkingStyle}</dd>
+              </div>
+            )}
+            {data.burnoutRisk != null && (
+              <div>
+                <dt className="font-medium text-sm">Риск выгорания</dt>
+                <dd className="mt-1 text-sm text-neutral-600">{data.burnoutRisk}</dd>
+              </div>
+            )}
+          </dl>
+        )}
       </FormSection>
       <FormSection title="Профиль DISC">
         <DiscHexagonChart
