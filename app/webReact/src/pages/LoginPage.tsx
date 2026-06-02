@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AdaptiveLayout } from '../components/AdaptiveLayout'
+import { BrandTitle } from '../components/BrandTitle'
 
 interface LoginPageProps {
   isBusy: boolean
@@ -23,7 +24,7 @@ export function LoginPage({ isBusy, errorMessage, onSignIn }: LoginPageProps) {
         onSubmit={handleSubmit}
         autoComplete="on"
       >
-        <h1 className="text-3xl font-semibold tracking-tight">VibeHunt</h1>
+        <BrandTitle size="lg" />
         <p className="text-center text-base text-neutral-600">
           Найдите работу или наймите специалистов. Войдите, чтобы продолжить.
         </p>

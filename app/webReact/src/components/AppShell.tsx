@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import type { AuthUserDto, UserRole } from '../api/types'
 import { displayRoleLabel } from '../lib/roleLabels'
+import { BrandTitle } from './BrandTitle'
 
 interface NavItem {
   to: string
@@ -20,7 +21,7 @@ export function AppShell({ user, role, navItems, onLogout }: AppShellProps) {
     <div className="flex min-h-screen flex-col bg-neutral-50 md:flex-row">
       <aside className="border-b border-neutral-200 bg-white md:w-60 md:border-b-0 md:border-r">
         <div className="px-5 py-5">
-          <p className="text-lg font-semibold tracking-tight">VibeHunt</p>
+          <BrandTitle size="md" />
           <p className="mt-1 text-xs text-neutral-500">{displayRoleLabel(role)}</p>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:overflow-visible md:px-3 md:pb-6">
