@@ -145,21 +145,8 @@ class PersonalityProfileService(
         require(context.surveys.isNotEmpty()) { "Нет завершённых опросов для интерпретации" }
 
         val (systemPrompt, userPrompt) = promptBuilder.build(context)
-        var rawResponse = llmClient.chat(systemPrompt, userPrompt)
-
-        val output =
-            try {
-                validator.validateAndParse(rawResponse)
-            } catch (firstError: IllegalArgumentException) {
-                logger.warn("LLM response validation failed, retrying: ${firstError.message}")
-                rawResponse =
-                    llmClient.chat(
-                        systemPrompt,
-                        userPrompt + "\n\n" + promptBuilder.retryPrompt(firstError.message ?: "invalid JSON"),
-                    )
-                validator.validateAndParse(rawResponse)
-            }
-
+        val rawResponse = llmClient.chat(systemPrompt, userPrompt)
+        val output = validator.validateAndParse(rawResponse)
         val record = PersonalityProfileMapper.fromLlmOutput(seekerId, output)
         profileRepository.upsertProfile(seekerId, record)
     }

@@ -83,19 +83,4 @@ class PersonalityPromptBuilder {
 
         return systemPrompt to userPrompt
     }
-
-    fun retryPrompt(originalError: String): String {
-        val extraBraceHint =
-            if (originalError.contains("Expected EOF", ignoreCase = true) ||
-                originalError.contains("but had }", ignoreCase = true)
-            ) {
-                " Частая причина — лишняя закрывающая скобка «}» после конца объекта; ответ должен заканчиваться ровно одной «}» корневого объекта."
-            } else {
-                ""
-            }
-        return """
-            Предыдущий ответ был некорректен: $originalError$extraBraceHint
-            Верни ТОЛЬКО один валидный JSON-объект строго по схеме: без markdown, без текста до/после JSON, без лишних скобок.
-            """.trimIndent()
-    }
 }
