@@ -155,6 +155,7 @@ export function SeekerPersonalityPage() {
   const categories = data.categories ?? []
   const energySources = data.energySources
   const stopFactors = data.stopFactors
+  const showEnergyStopSideBySide = energySources != null && stopFactors != null
 
   return (
     <div className="flex flex-col gap-6">
@@ -190,36 +191,50 @@ export function SeekerPersonalityPage() {
           </dl>
         )}
       </FormSection>
+      {categories.length > 0 && <PersonalityCategoryTabs categories={categories} />}
       <FormSection title="Профиль DISC">
         <DiscHexagonChart
           labels={axisKeys.map((key) => AXIS_LABELS[key])}
           values={axes}
         />
       </FormSection>
-      {categories.length > 0 && <PersonalityCategoryTabs categories={categories} />}
-      {energySources != null && (
-        <FormSection title={energySources.title}>
-          <ul className="flex flex-col gap-3">
-            {energySources.items.map((item) => (
-              <li key={item.title}>
-                <p className="font-medium text-sm">{item.title}</p>
-                <p className="text-sm text-neutral-600">{item.description}</p>
-              </li>
-            ))}
-          </ul>
-        </FormSection>
-      )}
-      {stopFactors != null && (
-        <FormSection title={stopFactors.title}>
-          <ul className="flex flex-col gap-3">
-            {stopFactors.items.map((item) => (
-              <li key={item.title}>
-                <p className="font-medium text-sm">{item.title}</p>
-                <p className="text-sm text-neutral-600">{item.description}</p>
-              </li>
-            ))}
-          </ul>
-        </FormSection>
+      {(energySources != null || stopFactors != null) && (
+        <div
+          className={
+            showEnergyStopSideBySide
+              ? 'flex flex-col gap-6 md:flex-row'
+              : 'flex flex-col gap-6'
+          }
+        >
+          {energySources != null && (
+            <div className={showEnergyStopSideBySide ? 'md:min-w-0 md:flex-1' : undefined}>
+              <FormSection title={energySources.title}>
+                <ul className="flex flex-col gap-3">
+                  {energySources.items.map((item) => (
+                    <li key={item.title}>
+                      <p className="font-medium text-sm">{item.title}</p>
+                      <p className="text-sm text-neutral-600">{item.description}</p>
+                    </li>
+                  ))}
+                </ul>
+              </FormSection>
+            </div>
+          )}
+          {stopFactors != null && (
+            <div className={showEnergyStopSideBySide ? 'md:min-w-0 md:flex-1' : undefined}>
+              <FormSection title={stopFactors.title}>
+                <ul className="flex flex-col gap-3">
+                  {stopFactors.items.map((item) => (
+                    <li key={item.title}>
+                      <p className="font-medium text-sm">{item.title}</p>
+                      <p className="text-sm text-neutral-600">{item.description}</p>
+                    </li>
+                  ))}
+                </ul>
+              </FormSection>
+            </div>
+          )}
+        </div>
       )}
     </div>
   )

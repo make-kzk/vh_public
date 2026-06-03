@@ -50,13 +50,15 @@ export function PersonalityTraitAccordion({
             scalePosition={trait.scalePosition}
           />
           <div className="mt-4 flex flex-col gap-3 text-sm">
-            <div>
-              <p className="font-medium text-neutral-800">{LABEL_GOOD_DAY}</p>
-              <p className="mt-0.5 text-neutral-600">{trait.details.goodDay}</p>
-            </div>
-            <div>
-              <p className="font-medium text-neutral-800">{LABEL_BAD_DAY}</p>
-              <p className="mt-0.5 text-neutral-600">{trait.details.badDay}</p>
+            <div className="flex flex-col gap-3 md:flex-row md:gap-4">
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-neutral-800">{LABEL_GOOD_DAY}</p>
+                <p className="mt-0.5 text-neutral-600">{trait.details.goodDay}</p>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-neutral-800">{LABEL_BAD_DAY}</p>
+                <p className="mt-0.5 text-neutral-600">{trait.details.badDay}</p>
+              </div>
             </div>
             <div>
               <p className="font-medium text-neutral-800">{LABEL_SUCCEED_THROUGH}</p>
