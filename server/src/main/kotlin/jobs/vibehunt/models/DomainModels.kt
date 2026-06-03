@@ -170,66 +170,13 @@ object PersonalityTraitDetailsRules {
     const val SUCCEED_THROUGH_SIZE = 3
 }
 
-@Serializable
-data class PersonalityTraitDetailsJson(
-    val description: String,
-    @kotlinx.serialization.SerialName("good_day") val goodDay: String? = null,
-    @kotlinx.serialization.SerialName("bad_day") val badDay: String? = null,
-    @kotlinx.serialization.SerialName("succeed_through") val succeedThrough: List<String>? = null,
-) {
-    fun validateSucceedThrough(path: String) {
-        require(succeedThrough != null && succeedThrough.size == PersonalityTraitDetailsRules.SUCCEED_THROUGH_SIZE) {
-            "$path.details.succeed_through должен содержать ровно ${PersonalityTraitDetailsRules.SUCCEED_THROUGH_SIZE} пункта"
-        }
-        succeedThrough.forEachIndexed { index, item ->
-            require(item.isNotBlank()) { "$path.details.succeed_through[$index] не может быть пустым" }
-        }
-    }
-}
-
-@Serializable
-data class PersonalityTraitJson(
-    val label: String,
-    @kotlinx.serialization.SerialName("scale_position") val scalePosition: Double,
-    @kotlinx.serialization.SerialName("left_pole") val leftPole: String,
-    @kotlinx.serialization.SerialName("right_pole") val rightPole: String,
-    val details: PersonalityTraitDetailsJson? = null,
-)
-
-/** Фиксированный набор черт: ровно [expectedTraitCount] элементов и ровно одна «главная сила» по индексу. */
-@Serializable
-data class PersonalityTraitCategoryJson(
-    val description: String,
-    @kotlinx.serialization.SerialName("top_strength_index") val topStrengthIndex: Int,
-    val traits: List<PersonalityTraitJson>,
-) {
-    fun expectedTraitCount(categoryKey: String): Int =
-        when (categoryKey) {
-            "connections" -> 4
-            "creativity" -> 3
-            "drive" -> 4
-            "thinking" -> 1
-            else -> error("Неизвестная категория: $categoryKey")
-        }
-
-    fun validateStructure(categoryKey: String) {
-        val expected = expectedTraitCount(categoryKey)
-        require(traits.size == expected) {
-            "$categoryKey.traits должен содержать ровно $expected элемент(ов), получено ${traits.size}"
-        }
-        require(topStrengthIndex in traits.indices) {
-            "$categoryKey.top_strength_index должен быть от 0 до ${traits.lastIndex}, получено $topStrengthIndex"
-        }
-    }
-}
-
 object PersonalitySectionRules {
     const val ENERGY_SOURCES_COUNT = 3
     const val STOP_FACTORS_COUNT = 2
     const val ENERGY_SOURCES_TITLE = "Источники энергии"
     const val STOP_FACTORS_TITLE = "Стоп-факторы"
-    const val ITEM_DESCRIPTION_MIN_WORDS = 20
-    const val ITEM_DESCRIPTION_MAX_WORDS = 30
+    const val ITEM_DESCRIPTION_MIN_WORDS = 15
+    const val ITEM_DESCRIPTION_MAX_WORDS = 25
 }
 
 fun personalityItemWordCount(text: String): Int =
@@ -243,51 +190,13 @@ data class PersonalityItemDto(
     fun validateItem(path: String) {
         require(title.isNotBlank()) { "$path.title обязательно" }
         require(description.isNotBlank()) { "$path.description обязательно" }
-        // Временно отключено: ограничение 20–30 слов в description
+        // Временно отключено: ограничение 15–25 слов в description
         // val words = personalityItemWordCount(description)
         // require(words in PersonalitySectionRules.ITEM_DESCRIPTION_MIN_WORDS..PersonalitySectionRules.ITEM_DESCRIPTION_MAX_WORDS) {
         //     "$path.description должно содержать от ${PersonalitySectionRules.ITEM_DESCRIPTION_MIN_WORDS} " +
         //         "до ${PersonalitySectionRules.ITEM_DESCRIPTION_MAX_WORDS} слов, получено $words"
         // }
     }
-}
-
-/** Ровно 3 источника энергии; title фиксирован. */
-@Serializable
-data class EnergySourcesJson(
-    val title: String,
-    val items: List<PersonalityItemDto>,
-) {
-    fun validateStructure() {
-        require(title == PersonalitySectionRules.ENERGY_SOURCES_TITLE) {
-            "energy_sources.title должен быть «${PersonalitySectionRules.ENERGY_SOURCES_TITLE}»"
-        }
-        require(items.size == PersonalitySectionRules.ENERGY_SOURCES_COUNT) {
-            "energy_sources.items должен содержать ровно ${PersonalitySectionRules.ENERGY_SOURCES_COUNT} элемента, получено ${items.size}"
-        }
-        items.forEachIndexed { index, item -> item.validateItem("energy_sources.items[$index]") }
-    }
-
-    fun toSectionDto(): PersonalitySectionDto = PersonalitySectionDto(title = title, items = items)
-}
-
-/** Ровно 2 стоп-фактора; title фиксирован. */
-@Serializable
-data class StopFactorsJson(
-    val title: String,
-    val items: List<PersonalityItemDto>,
-) {
-    fun validateStructure() {
-        require(title == PersonalitySectionRules.STOP_FACTORS_TITLE) {
-            "stop_factors.title должен быть «${PersonalitySectionRules.STOP_FACTORS_TITLE}»"
-        }
-        require(items.size == PersonalitySectionRules.STOP_FACTORS_COUNT) {
-            "stop_factors.items должен содержать ровно ${PersonalitySectionRules.STOP_FACTORS_COUNT} элемента, получено ${items.size}"
-        }
-        items.forEachIndexed { index, item -> item.validateItem("stop_factors.items[$index]") }
-    }
-
-    fun toSectionDto(): PersonalitySectionDto = PersonalitySectionDto(title = title, items = items)
 }
 
 @Serializable
@@ -305,10 +214,10 @@ data class SeekerPersonalProfileRecord(
     val autonomy: String?,
     val thinkingStyle: String?,
     val burnoutRisk: String?,
-    val connections: String?,
-    val creativity: String?,
-    val drive: String?,
-    val thinking: String?,
+    val connections: ConnectionsCategory?,
+    val creativity: CreativityCategory?,
+    val drive: DriveCategory?,
+    val thinking: ThinkingCategory?,
     val axisDominance: Double?,
     val axisInfluence: Double?,
     val axisStability: Double?,
@@ -319,8 +228,8 @@ data class SeekerPersonalProfileRecord(
     val burnoutRiskConflicts: Double?,
     val burnoutRiskDemotivation: Double?,
     val burnoutRiskStress: Double?,
-    val energySources: String?,
-    val stopFactors: String?,
+    val energySources: EnergySourcesSection?,
+    val stopFactors: StopFactorsSection?,
     val generationStatus: PersonalityProfileStatus,
     val generationError: String?,
 )
@@ -333,10 +242,10 @@ data class SeekerPersonalProfileLlmOutput(
     val autonomy: String? = null,
     @kotlinx.serialization.SerialName("thinking_style") val thinkingStyle: String? = null,
     @kotlinx.serialization.SerialName("burnout_risk") val burnoutRisk: String? = null,
-    val connections: PersonalityTraitCategoryJson,
-    val creativity: PersonalityTraitCategoryJson,
-    val drive: PersonalityTraitCategoryJson,
-    val thinking: PersonalityTraitCategoryJson,
+    val connections: ConnectionsCategory,
+    val creativity: CreativityCategory,
+    val drive: DriveCategory,
+    val thinking: ThinkingCategory,
     @kotlinx.serialization.SerialName("axis_dominance") val axisDominance: Double,
     @kotlinx.serialization.SerialName("axis_influence") val axisInfluence: Double,
     @kotlinx.serialization.SerialName("axis_stability") val axisStability: Double,
@@ -347,8 +256,23 @@ data class SeekerPersonalProfileLlmOutput(
     @kotlinx.serialization.SerialName("burnout_risk_conflicts") val burnoutRiskConflicts: Double? = null,
     @kotlinx.serialization.SerialName("burnout_risk_demotivation") val burnoutRiskDemotivation: Double? = null,
     @kotlinx.serialization.SerialName("burnout_risk_stress") val burnoutRiskStress: Double? = null,
-    @kotlinx.serialization.SerialName("energy_sources") val energySources: EnergySourcesJson,
-    @kotlinx.serialization.SerialName("stop_factors") val stopFactors: StopFactorsJson,
+    @kotlinx.serialization.SerialName("energy_sources") val energySources: EnergySourcesSection,
+    @kotlinx.serialization.SerialName("stop_factors") val stopFactors: StopFactorsSection,
+)
+
+@Serializable
+data class SucceedThroughDto(
+    val point0: String,
+    val point1: String,
+    val point2: String,
+)
+
+@Serializable
+data class PersonalityTraitDetailsDto(
+    val description: String,
+    val goodDay: String,
+    val badDay: String,
+    val succeedThrough: SucceedThroughDto,
 )
 
 @Serializable
@@ -358,10 +282,7 @@ data class PersonalityTraitDto(
     val scalePosition: Double,
     val leftPole: String,
     val rightPole: String,
-    val description: String,
-    val goodDay: String,
-    val badDay: String,
-    val succeedThrough: List<String>,
+    val details: PersonalityTraitDetailsDto,
     val isTopStrength: Boolean = false,
 )
 

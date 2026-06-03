@@ -43,7 +43,7 @@ export function PersonalityTraitAccordion({
       </button>
       {isOpen && (
         <div className="border-t border-neutral-200 px-4 pb-4 pt-3">
-          <p className="text-sm text-neutral-700">{trait.description}</p>
+          <p className="text-sm text-neutral-700">{trait.details.description}</p>
           <PersonalityTraitScale
             leftPole={trait.leftPole}
             rightPole={trait.rightPole}
@@ -52,16 +52,20 @@ export function PersonalityTraitAccordion({
           <div className="mt-4 flex flex-col gap-3 text-sm">
             <div>
               <p className="font-medium text-neutral-800">{LABEL_GOOD_DAY}</p>
-              <p className="mt-0.5 text-neutral-600">{trait.goodDay}</p>
+              <p className="mt-0.5 text-neutral-600">{trait.details.goodDay}</p>
             </div>
             <div>
               <p className="font-medium text-neutral-800">{LABEL_BAD_DAY}</p>
-              <p className="mt-0.5 text-neutral-600">{trait.badDay}</p>
+              <p className="mt-0.5 text-neutral-600">{trait.details.badDay}</p>
             </div>
             <div>
               <p className="font-medium text-neutral-800">{LABEL_SUCCEED_THROUGH}</p>
               <ul className="mt-1 list-disc space-y-0.5 pl-5 text-neutral-600">
-                {trait.succeedThrough.map((item) => (
+                {[
+                  trait.details.succeedThrough.point0,
+                  trait.details.succeedThrough.point1,
+                  trait.details.succeedThrough.point2,
+                ].map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>

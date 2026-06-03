@@ -1,8 +1,16 @@
 package jobs.vibehunt.db.tables
 
+import jobs.vibehunt.models.ConnectionsCategory
+import jobs.vibehunt.models.CreativityCategory
+import jobs.vibehunt.models.DriveCategory
+import jobs.vibehunt.models.EnergySourcesSection
+import jobs.vibehunt.models.PersonalityDbJson
+import jobs.vibehunt.models.StopFactorsSection
+import jobs.vibehunt.models.ThinkingCategory
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.timestampWithTimeZone
+import org.jetbrains.exposed.sql.json.jsonb
 
 object SeekerPersonalProfilesTable : Table("seeker_personal_profiles") {
     val seekerId = reference("seeker_id", SeekersTable, onDelete = ReferenceOption.CASCADE)
@@ -12,10 +20,10 @@ object SeekerPersonalProfilesTable : Table("seeker_personal_profiles") {
     val autonomy = text("autonomy").nullable()
     val thinkingStyle = text("thinking_style").nullable()
     val burnoutRisk = text("burnout_risk").nullable()
-    val connections = text("connections").nullable()
-    val creativity = text("creativity").nullable()
-    val drive = text("drive").nullable()
-    val thinking = text("thinking").nullable()
+    val connections = jsonb<ConnectionsCategory>("connections", PersonalityDbJson).nullable()
+    val creativity = jsonb<CreativityCategory>("creativity", PersonalityDbJson).nullable()
+    val drive = jsonb<DriveCategory>("drive", PersonalityDbJson).nullable()
+    val thinking = jsonb<ThinkingCategory>("thinking", PersonalityDbJson).nullable()
     val axisDominance = decimal("axis_dominance", 3, 2).nullable()
     val axisInfluence = decimal("axis_influence", 3, 2).nullable()
     val axisStability = decimal("axis_stability", 3, 2).nullable()
@@ -26,8 +34,8 @@ object SeekerPersonalProfilesTable : Table("seeker_personal_profiles") {
     val burnoutRiskConflicts = decimal("burnout_risk_conflicts", 3, 2).nullable()
     val burnoutRiskDemotivation = decimal("burnout_risk_demotivation", 3, 2).nullable()
     val burnoutRiskStress = decimal("burnout_risk_stress", 3, 2).nullable()
-    val energySources = text("energy_sources").nullable()
-    val stopFactors = text("stop_factors").nullable()
+    val energySources = jsonb<EnergySourcesSection>("energy_sources", PersonalityDbJson).nullable()
+    val stopFactors = jsonb<StopFactorsSection>("stop_factors", PersonalityDbJson).nullable()
     val generationStatus = varchar("generation_status", 20)
     val generationError = text("generation_error").nullable()
     val updatedAt = timestampWithTimeZone("updated_at")

@@ -1,11 +1,12 @@
 package jobs.vibehunt.domain
 
 import jobs.vibehunt.llm.LlmResponseParser
+import jobs.vibehunt.models.PersonalityTrait
+import jobs.vibehunt.models.PersonalityDbJson
 import jobs.vibehunt.models.SeekerPersonalProfileLlmOutput
-import kotlinx.serialization.json.Json
 
 class PersonalityProfileValidator {
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = PersonalityDbJson
 
     fun validateAndParse(rawResponse: String): SeekerPersonalProfileLlmOutput {
         val jsonText = LlmResponseParser.extractJson(rawResponse)
@@ -34,14 +35,14 @@ class PersonalityProfileValidator {
         output.burnoutRiskDemotivation?.let { requireScore(it, "burnout_risk_demotivation") }
         output.burnoutRiskStress?.let { requireScore(it, "burnout_risk_stress") }
 
-        validateCategory(output.connections, "connections")
-        validateCategory(output.creativity, "creativity")
-        validateCategory(output.drive, "drive")
-        validateCategory(output.thinking, "thinking")
-        output.connections.validateStructure("connections")
-        output.creativity.validateStructure("creativity")
-        output.drive.validateStructure("drive")
-        output.thinking.validateStructure("thinking")
+        output.connections.validateStructure()
+        output.creativity.validateStructure()
+        output.drive.validateStructure()
+        output.thinking.validateStructure()
+        validateTraits("connections", output.connections.traits.asList())
+        validateTraits("creativity", output.creativity.traits.asList())
+        validateTraits("drive", output.drive.traits.asList())
+        validateTraits("thinking", output.thinking.traits.asList())
         output.energySources.validateStructure()
         output.stopFactors.validateStructure()
 
@@ -52,12 +53,8 @@ class PersonalityProfileValidator {
         require(value in 0.0..1.0) { "$field должно быть в диапазоне 0.0–1.0, получено $value" }
     }
 
-    private fun validateCategory(
-        category: jobs.vibehunt.models.PersonalityTraitCategoryJson,
-        name: String,
-    ) {
-        require(category.description.isNotBlank()) { "$name.description обязательно" }
-        category.traits.forEachIndexed { index, trait ->
+    private fun validateTraits(name: String, traits: List<PersonalityTrait>) {
+        traits.forEachIndexed { index, trait ->
             val path = "$name.traits[$index]"
             require(trait.label.isNotBlank()) { "$path.label обязательно" }
             require(trait.leftPole.isNotBlank()) { "$path.left_pole обязательно" }
@@ -71,5 +68,4 @@ class PersonalityProfileValidator {
             details.validateSucceedThrough(path)
         }
     }
-
 }

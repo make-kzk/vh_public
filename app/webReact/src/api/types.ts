@@ -137,16 +137,26 @@ export interface CreateJobProfileRequest {
   skillIds?: number[]
 }
 
+export interface SucceedThroughDto {
+  point0: string
+  point1: string
+  point2: string
+}
+
+export interface PersonalityTraitDetailsDto {
+  description: string
+  goodDay: string
+  badDay: string
+  succeedThrough: SucceedThroughDto
+}
+
 export interface PersonalityTraitDto {
   key: string
   label: string
   scalePosition: number
   leftPole: string
   rightPole: string
-  description: string
-  goodDay: string
-  badDay: string
-  succeedThrough: string[]
+  details: PersonalityTraitDetailsDto
   isTopStrength?: boolean
 }
 

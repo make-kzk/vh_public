@@ -8,13 +8,26 @@ import jobs.vibehunt.models.PersonalityPreviewDto
 import jobs.vibehunt.models.PersonalityProfileStatus
 import jobs.vibehunt.models.PersonalitySectionDto
 import jobs.vibehunt.models.PersonalityTraitDto
-import jobs.vibehunt.models.PersonalityTraitCategoryJson
-import jobs.vibehunt.models.PersonalityTraitDetailsJson
-import jobs.vibehunt.models.PersonalityTraitJson
-import jobs.vibehunt.models.EnergySourcesJson
+import jobs.vibehunt.models.ConnectionsCategory
+import jobs.vibehunt.models.ConnectionsTraits
+import jobs.vibehunt.models.CreativityCategory
+import jobs.vibehunt.models.CreativityTraits
+import jobs.vibehunt.models.DriveCategory
+import jobs.vibehunt.models.DriveTraits
+import jobs.vibehunt.models.EnergySourcesItems
+import jobs.vibehunt.models.EnergySourcesSection
+import jobs.vibehunt.models.PersonalityItem
 import jobs.vibehunt.models.PersonalitySectionRules
-import jobs.vibehunt.models.StopFactorsJson
+import jobs.vibehunt.models.PersonalityTrait
+import jobs.vibehunt.models.PersonalityTraitDetails
+import jobs.vibehunt.models.PersonalityTraitDetailsDto
 import jobs.vibehunt.models.SeekerPersonalProfileLlmOutput
+import jobs.vibehunt.models.StopFactorsItems
+import jobs.vibehunt.models.StopFactorsSection
+import jobs.vibehunt.models.SucceedThrough
+import jobs.vibehunt.models.SucceedThroughDto
+import jobs.vibehunt.models.ThinkingCategory
+import jobs.vibehunt.models.ThinkingTraits
 
 object StubData {
     private fun trait(
@@ -33,10 +46,18 @@ object StubData {
         scalePosition = scalePosition,
         leftPole = leftPole,
         rightPole = rightPole,
-        description = description,
-        goodDay = goodDay,
-        badDay = badDay,
-        succeedThrough = succeedThrough,
+        details =
+            PersonalityTraitDetailsDto(
+                description = description,
+                goodDay = goodDay,
+                badDay = badDay,
+                succeedThrough =
+                    SucceedThroughDto(
+                        point0 = succeedThrough[0],
+                        point1 = succeedThrough[1],
+                        point2 = succeedThrough[2],
+                    ),
+            ),
         isTopStrength = false,
     )
 
@@ -55,27 +76,58 @@ object StubData {
             },
     )
 
-    private fun categoryJson(cat: PersonalityCategoryDto) =
-        PersonalityTraitCategoryJson(
+    private fun traitFromDto(dto: PersonalityTraitDto): PersonalityTrait {
+        val st = dto.details.succeedThrough
+        return PersonalityTrait(
+            label = dto.label,
+            scalePosition = dto.scalePosition,
+            leftPole = dto.leftPole,
+            rightPole = dto.rightPole,
+            details =
+                PersonalityTraitDetails(
+                    description = dto.details.description,
+                    goodDay = dto.details.goodDay,
+                    badDay = dto.details.badDay,
+                    succeedThrough = SucceedThrough(st.point0, st.point1, st.point2),
+                ),
+        )
+    }
+
+    private fun connectionsCategory(cat: PersonalityCategoryDto): ConnectionsCategory {
+        val traits = cat.traits.map(::traitFromDto)
+        return ConnectionsCategory(
             description = cat.description,
             topStrengthIndex = cat.topStrengthIndex,
-            traits =
-                cat.traits.map { dto ->
-                    PersonalityTraitJson(
-                        label = dto.label,
-                        scalePosition = dto.scalePosition,
-                        leftPole = dto.leftPole,
-                        rightPole = dto.rightPole,
-                        details =
-                            PersonalityTraitDetailsJson(
-                                description = dto.description,
-                                goodDay = dto.goodDay,
-                                badDay = dto.badDay,
-                                succeedThrough = dto.succeedThrough,
-                            ),
-                    )
-                },
+            traits = ConnectionsTraits(traits[0], traits[1], traits[2], traits[3]),
         )
+    }
+
+    private fun creativityCategory(cat: PersonalityCategoryDto): CreativityCategory {
+        val traits = cat.traits.map(::traitFromDto)
+        return CreativityCategory(
+            description = cat.description,
+            topStrengthIndex = cat.topStrengthIndex,
+            traits = CreativityTraits(traits[0], traits[1], traits[2]),
+        )
+    }
+
+    private fun driveCategory(cat: PersonalityCategoryDto): DriveCategory {
+        val traits = cat.traits.map(::traitFromDto)
+        return DriveCategory(
+            description = cat.description,
+            topStrengthIndex = cat.topStrengthIndex,
+            traits = DriveTraits(traits[0], traits[1], traits[2], traits[3]),
+        )
+    }
+
+    private fun thinkingCategory(cat: PersonalityCategoryDto): ThinkingCategory {
+        val traits = cat.traits.map(::traitFromDto)
+        return ThinkingCategory(
+            description = cat.description,
+            topStrengthIndex = cat.topStrengthIndex,
+            traits = ThinkingTraits(traits[0]),
+        )
+    }
 
     fun personalityPreview(): PersonalityPreviewDto =
         PersonalityPreviewDto(
@@ -396,10 +448,12 @@ object StubData {
 
     fun personalityLlmOutput(): SeekerPersonalProfileLlmOutput {
         val preview = personalityPreview()
-        fun category(key: String): PersonalityTraitCategoryJson {
-            val cat = preview.categories!!.first { it.key == key }
-            return categoryJson(cat)
-        }
+        val connectionsCat = preview.categories!!.first { it.key == "connections" }
+        val creativityCat = preview.categories!!.first { it.key == "creativity" }
+        val driveCat = preview.categories!!.first { it.key == "drive" }
+        val thinkingCat = preview.categories!!.first { it.key == "thinking" }
+        val energyItems = preview.energySources!!.items.map { PersonalityItem(it.title, it.description) }
+        val stopItems = preview.stopFactors!!.items.map { PersonalityItem(it.title, it.description) }
         return SeekerPersonalProfileLlmOutput(
             title = preview.title!!,
             description = preview.description!!,
@@ -407,10 +461,10 @@ object StubData {
             autonomy = "Высокая потребность в самостоятельности и доверии со стороны руководства.",
             thinkingStyle = "Аналитический, системный подход с опорой на данные.",
             burnoutRisk = "Умеренный риск при хронической перегрузке и отсутствии автономии.",
-            connections = category("connections"),
-            creativity = category("creativity"),
-            drive = category("drive"),
-            thinking = category("thinking"),
+            connections = connectionsCategory(connectionsCat),
+            creativity = creativityCategory(creativityCat),
+            drive = driveCategory(driveCat),
+            thinking = thinkingCategory(thinkingCat),
             axisDominance = preview.axisDominance!!,
             axisInfluence = preview.axisInfluence!!,
             axisStability = preview.axisStability!!,
@@ -422,14 +476,14 @@ object StubData {
             burnoutRiskDemotivation = 0.35,
             burnoutRiskStress = 0.50,
             energySources =
-                EnergySourcesJson(
-                    title = preview.energySources!!.title,
-                    items = preview.energySources!!.items,
+                EnergySourcesSection(
+                    title = preview.energySources.title,
+                    items = EnergySourcesItems(energyItems[0], energyItems[1], energyItems[2]),
                 ),
             stopFactors =
-                StopFactorsJson(
-                    title = preview.stopFactors!!.title,
-                    items = preview.stopFactors!!.items,
+                StopFactorsSection(
+                    title = preview.stopFactors.title,
+                    items = StopFactorsItems(stopItems[0], stopItems[1]),
                 ),
         )
     }

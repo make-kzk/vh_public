@@ -1,28 +1,26 @@
 package jobs.vibehunt.domain
 
+import jobs.vibehunt.models.ConnectionsCategory
+import jobs.vibehunt.models.CreativityCategory
+import jobs.vibehunt.models.DriveCategory
 import jobs.vibehunt.models.PersonalityCategoryDto
 import jobs.vibehunt.models.PersonalityPreviewDto
 import jobs.vibehunt.models.PersonalityProfileStatus
-import jobs.vibehunt.models.EnergySourcesJson
-import jobs.vibehunt.models.PersonalitySectionDto
-import jobs.vibehunt.models.StopFactorsJson
+import jobs.vibehunt.models.PersonalityTrait
+import jobs.vibehunt.models.PersonalityTraitDetailsDto
 import jobs.vibehunt.models.PersonalityTraitDto
 import jobs.vibehunt.models.SeekerPersonalProfileLlmOutput
 import jobs.vibehunt.models.SeekerPersonalProfileRecord
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import jobs.vibehunt.models.SucceedThroughDto
+import jobs.vibehunt.models.ThinkingCategory
 
 object PersonalityProfileMapper {
-    private val json = Json { ignoreUnknownKeys = true }
-
     fun toPreview(
         record: SeekerPersonalProfileRecord,
         testsCompleted: Int,
         testsTotal: Int,
     ): PersonalityPreviewDto {
         val categories = buildCategories(record)
-        val energySources = record.energySources?.let { parseEnergySources(it) }
-        val stopFactors = record.stopFactors?.let { parseStopFactors(it) }
         return PersonalityPreviewDto(
             status = PersonalityProfileStatus.READY,
             testsCompleted = testsCompleted,
@@ -40,8 +38,8 @@ object PersonalityProfileMapper {
             axisAutonomy = record.axisAutonomy,
             axisPace = record.axisPace,
             categories = categories,
-            energySources = energySources,
-            stopFactors = stopFactors,
+            energySources = record.energySources?.toSectionDto(),
+            stopFactors = record.stopFactors?.toSectionDto(),
         )
     }
 
@@ -54,10 +52,10 @@ object PersonalityProfileMapper {
             autonomy = output.autonomy,
             thinkingStyle = output.thinkingStyle,
             burnoutRisk = output.burnoutRisk,
-            connections = json.encodeToString(output.connections),
-            creativity = json.encodeToString(output.creativity),
-            drive = json.encodeToString(output.drive),
-            thinking = json.encodeToString(output.thinking),
+            connections = output.connections,
+            creativity = output.creativity,
+            drive = output.drive,
+            thinking = output.thinking,
             axisDominance = output.axisDominance,
             axisInfluence = output.axisInfluence,
             axisStability = output.axisStability,
@@ -68,51 +66,88 @@ object PersonalityProfileMapper {
             burnoutRiskConflicts = output.burnoutRiskConflicts,
             burnoutRiskDemotivation = output.burnoutRiskDemotivation,
             burnoutRiskStress = output.burnoutRiskStress,
-            energySources = json.encodeToString(output.energySources),
-            stopFactors = json.encodeToString(output.stopFactors),
+            energySources = output.energySources,
+            stopFactors = output.stopFactors,
             generationStatus = PersonalityProfileStatus.READY,
             generationError = null,
         )
 
     private fun buildCategories(record: SeekerPersonalProfileRecord): List<PersonalityCategoryDto> {
-        val keys =
+        val entries =
             listOf(
                 "connections" to record.connections,
                 "creativity" to record.creativity,
                 "drive" to record.drive,
                 "thinking" to record.thinking,
             )
-        return keys.mapNotNull { (key, raw) ->
-            raw?.let { categoryRaw ->
-                val parsed = PersonalityCategoryParser.parse(categoryRaw, key)
-                PersonalityCategoryDto(
-                    key = key,
-                    description = parsed.description,
-                    topStrengthIndex = parsed.topStrengthIndex,
-                    traits =
-                        parsed.traits.mapIndexed { index, trait ->
-                            val details = trait.details
-                            PersonalityTraitDto(
-                                key = "${key}_$index",
-                                label = trait.label,
-                                scalePosition = trait.scalePosition,
-                                leftPole = trait.leftPole,
-                                rightPole = trait.rightPole,
-                                description = details?.description ?: trait.label,
-                                goodDay = details?.goodDay ?: "",
-                                badDay = details?.badDay ?: "",
-                                succeedThrough = details?.succeedThrough ?: emptyList(),
-                                isTopStrength = index == parsed.topStrengthIndex,
-                            )
-                        },
-                )
-            }
+        return entries.mapNotNull { (key, category) ->
+            category?.let { categoryToDto(key, category) }
         }
     }
 
-    private fun parseEnergySources(raw: String): PersonalitySectionDto =
-        json.decodeFromString<EnergySourcesJson>(raw).toSectionDto()
+    private fun categoryToDto(
+        key: String,
+        category: Any,
+    ): PersonalityCategoryDto =
+        when (category) {
+            is ConnectionsCategory ->
+                PersonalityCategoryDto(
+                    key = key,
+                    description = category.description,
+                    topStrengthIndex = category.topStrengthIndex,
+                    traits = traitsToDtos(key, category.topStrengthIndex, category.traits.asList()),
+                )
+            is CreativityCategory ->
+                PersonalityCategoryDto(
+                    key = key,
+                    description = category.description,
+                    topStrengthIndex = category.topStrengthIndex,
+                    traits = traitsToDtos(key, category.topStrengthIndex, category.traits.asList()),
+                )
+            is DriveCategory ->
+                PersonalityCategoryDto(
+                    key = key,
+                    description = category.description,
+                    topStrengthIndex = category.topStrengthIndex,
+                    traits = traitsToDtos(key, category.topStrengthIndex, category.traits.asList()),
+                )
+            is ThinkingCategory ->
+                PersonalityCategoryDto(
+                    key = key,
+                    description = category.description,
+                    topStrengthIndex = category.topStrengthIndex,
+                    traits = traitsToDtos(key, category.topStrengthIndex, category.traits.asList()),
+                )
+            else -> error("Неизвестная категория: $key")
+        }
 
-    private fun parseStopFactors(raw: String): PersonalitySectionDto =
-        json.decodeFromString<StopFactorsJson>(raw).toSectionDto()
+    private fun traitsToDtos(
+        categoryKey: String,
+        topStrengthIndex: Int,
+        traits: List<PersonalityTrait>,
+    ): List<PersonalityTraitDto> =
+        traits.mapIndexed { index, trait ->
+            val details = trait.details ?: error("$categoryKey.traits[$index].details обязательно")
+            val succeed = details.succeedThrough ?: error("$categoryKey.traits[$index].details.succeed_through обязательно")
+            PersonalityTraitDto(
+                key = "${categoryKey}_$index",
+                label = trait.label,
+                scalePosition = trait.scalePosition,
+                leftPole = trait.leftPole,
+                rightPole = trait.rightPole,
+                details =
+                    PersonalityTraitDetailsDto(
+                        description = details.description,
+                        goodDay = details.goodDay.orEmpty(),
+                        badDay = details.badDay.orEmpty(),
+                        succeedThrough =
+                            SucceedThroughDto(
+                                point0 = succeed.point0,
+                                point1 = succeed.point1,
+                                point2 = succeed.point2,
+                            ),
+                    ),
+                isTopStrength = index == topStrengthIndex,
+            )
+        }
 }
