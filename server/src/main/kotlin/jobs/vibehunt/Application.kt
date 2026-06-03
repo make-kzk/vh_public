@@ -25,6 +25,7 @@ import jobs.vibehunt.domain.ProfileProvisioningService
 import jobs.vibehunt.domain.SeekerProfileService
 import jobs.vibehunt.domain.SurveyService
 import jobs.vibehunt.llm.LlmClientFactory
+import jobs.vibehunt.plugins.configureCallLogging
 import jobs.vibehunt.plugins.configureCors
 import jobs.vibehunt.plugins.configureSerialization
 import jobs.vibehunt.routes.authRoutes
@@ -80,6 +81,7 @@ fun Application.module() {
     val employerProfileService = EmployerProfileService(employerRepository, referenceRepository)
 
     configureSerialization()
+    configureCallLogging()
     configureCors(config)
 
     routing {
