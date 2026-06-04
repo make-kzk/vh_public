@@ -22,8 +22,6 @@ import jobs.vibehunt.db.tables.SurveysTable
 import jobs.vibehunt.db.tables.UsersTable
 import org.flywaydb.core.api.migration.Context
 import org.jetbrains.exposed.sql.SchemaUtils
-import java.nio.file.Files
-import java.nio.file.Path
 
 class V1__Initial_schema : ExposedMigration() {
     override fun migrate(context: Context) {
@@ -57,6 +55,14 @@ class V1__Initial_schema : ExposedMigration() {
                 """.trimIndent(),
             )
             exec("CREATE INDEX IF NOT EXISTS idx_occupations_parent ON occupations (parent_id)")
+            exec(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_survey_results_seeker_survey_completed
+                ON survey_results (seeker_id, survey_id)
+                WHERE completed_at IS NOT NULL;
+                """.trimIndent(),
+            )
+            execSqlResource("db/seed/init_inserts.sql")
         }
     }
 }

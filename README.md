@@ -35,7 +35,7 @@ User role (`SEEKER` or `EMPLOYER`) is chosen once via `POST /api/auth/complete-r
    - **React + Tailwind:** `cd app/webReact && npm install && npm run dev` → http://localhost:8081 (**Node.js 20+** required; see [app/webReact/README.md](./app/webReact/README.md) if you see `Unexpected token '||='`)
    - **Compose:** `./gradlew :app:webApp:jsBrowserDevelopmentRun` → http://localhost:8082
 
-Database migrations are Kotlin classes (`BaseJavaMigration` + Exposed) under `server/src/main/kotlin/db/migration/`. If you already applied older SQL migrations locally, reset the database:
+Database schema and reference data ship in a single Flyway migration (`V1__Initial_schema`) under `server/src/main/kotlin/db/migration/`; seed SQL lives in `server/src/main/resources/db/seed/init_inserts.sql` (source: `.workspace/db-init-scripts/init_inserts.sql`). If you already applied older migrations locally, reset the database:
 
 ```bash
 docker compose down -v && docker compose up -d
