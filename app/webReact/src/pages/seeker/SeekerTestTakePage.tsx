@@ -154,6 +154,32 @@ export function SeekerTestTakePage() {
   const complete = isSurveyComplete(definition, answers)
   const testTitle = TEST_TITLES[survey.groupCode] ?? survey.name
 
+  const hasCoreSteps =
+    isCoreTest && survey.stepNumber != null && survey.stepTotal != null
+  const hasScalePages = isScaleTest && scalePageCount > 1
+  const showFinishAction =
+    (isCoreTest && isLastCoreStep) || (isScaleTest && onLastScalePage)
+  const showNavBar = hasCoreSteps || hasScalePages || showFinishAction
+
+  function handlePrimary() {
+    if (isScaleTest && !onLastScalePage) {
+      setScalePage((p) => p + 1)
+      return
+    }
+    void handleAdvance()
+  }
+
+  const primaryLabel = submitting
+    ? 'Сохранение…'
+    : showFinishAction
+      ? 'Завершить'
+      : 'Далее'
+  const primaryDisabled = showFinishAction
+    ? !complete || submitting
+    : hasCoreSteps
+      ? !complete || submitting
+      : submitting
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -165,56 +191,51 @@ export function SeekerTestTakePage() {
 
       {error != null && <p className="text-sm text-red-600">{error}</p>}
 
-      {isCoreTest && survey.stepNumber != null && survey.stepTotal != null && (
-        <div className="flex items-center justify-between text-sm text-neutral-600">
-          <span>
-            Часть {survey.stepNumber} / {survey.stepTotal}
-          </span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={survey.stepNumber <= 1 || submitting}
-              onClick={() => void handleBack()}
-              className="rounded border border-neutral-300 px-3 py-1 disabled:opacity-40"
-            >
-              Назад
-            </button>
-            {!isLastCoreStep && (
+      {showNavBar && (
+        <div className="sticky top-0 z-10 -mx-5 border-b border-neutral-200 bg-neutral-50/95 px-5 py-3 backdrop-blur-sm">
+          <div className="flex items-center justify-between gap-4 text-sm text-neutral-600">
+            <span>
+              {hasCoreSteps && (
+                <>
+                  Часть {survey.stepNumber} / {survey.stepTotal}
+                </>
+              )}
+              {hasScalePages && (
+                <>
+                  Страница {scalePage + 1} / {scalePageCount}
+                </>
+              )}
+            </span>
+            <div className="flex shrink-0 gap-2">
+              {(hasCoreSteps || hasScalePages) && (
+                <button
+                  type="button"
+                  disabled={
+                    hasCoreSteps
+                      ? survey.stepNumber! <= 1 || submitting
+                      : scalePage === 0
+                  }
+                  onClick={() =>
+                    hasCoreSteps ? void handleBack() : setScalePage((p) => p - 1)
+                  }
+                  className="rounded border border-neutral-300 px-3 py-1 disabled:opacity-40"
+                >
+                  Назад
+                </button>
+              )}
               <button
                 type="button"
-                disabled={!complete || submitting}
-                onClick={() => void handleAdvance()}
-                className="rounded border border-neutral-300 px-3 py-1 disabled:opacity-40"
+                disabled={primaryDisabled}
+                onClick={handlePrimary}
+                className={
+                  showFinishAction
+                    ? 'rounded-lg bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50'
+                    : 'rounded border border-neutral-300 px-3 py-1 disabled:opacity-40'
+                }
               >
-                {submitting ? 'Сохранение…' : 'Далее'}
+                {primaryLabel}
               </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {isScaleTest && scalePageCount > 1 && (
-        <div className="flex items-center justify-between text-sm text-neutral-600">
-          <span>
-            Страница {scalePage + 1} / {scalePageCount}
-          </span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={scalePage === 0}
-              onClick={() => setScalePage((p) => p - 1)}
-              className="rounded border border-neutral-300 px-3 py-1 disabled:opacity-40"
-            >
-              Назад
-            </button>
-            <button
-              type="button"
-              disabled={scalePage >= scalePageCount - 1}
-              onClick={() => setScalePage((p) => p + 1)}
-              className="rounded border border-neutral-300 px-3 py-1 disabled:opacity-40"
-            >
-              Далее
-            </button>
+            </div>
           </div>
         </div>
       )}
@@ -226,17 +247,6 @@ export function SeekerTestTakePage() {
         pageIndex={isScaleTest ? scalePage : undefined}
         pageSize={isScaleTest ? SCALE_PAGE_SIZE : undefined}
       />
-
-      {((isCoreTest && isLastCoreStep) || (isScaleTest && onLastScalePage)) && (
-        <button
-          type="button"
-          disabled={!complete || submitting}
-          onClick={() => void handleAdvance()}
-          className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-        >
-          {submitting ? 'Сохранение…' : 'Завершить тест'}
-        </button>
-      )}
     </div>
   )
 }
