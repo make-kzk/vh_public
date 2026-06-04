@@ -443,7 +443,7 @@ object StubData {
                         ),
                 ),
             testsCompleted = 1,
-            testsTotal = 3,
+            testsTotal = 2,
         )
 
     fun personalityLlmOutput(): SeekerPersonalProfileLlmOutput {

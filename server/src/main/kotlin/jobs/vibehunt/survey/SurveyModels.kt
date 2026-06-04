@@ -44,6 +44,7 @@ data class SurveyListItemDto(
     val description: String,
     val status: SurveyStatus,
     val sortOrder: Int,
+    val locked: Boolean = false,
 )
 
 @Serializable
@@ -53,6 +54,9 @@ data class SurveyGroupDto(
     val surveys: List<SurveyListItemDto>,
     val completedCount: Int,
     val totalCount: Int,
+    val status: SurveyStatus,
+    val locked: Boolean = false,
+    val entrySurveyId: Long? = null,
 )
 
 @Serializable
@@ -73,6 +77,11 @@ data class SurveyDetailDto(
     val status: SurveyStatus,
     val answersJson: String?,
     val resultId: Long?,
+    val locked: Boolean = false,
+    val stepNumber: Int? = null,
+    val stepTotal: Int? = null,
+    val prevSurveyId: Long? = null,
+    val nextSurveyId: Long? = null,
 )
 
 @Serializable
@@ -106,4 +115,5 @@ data class CompleteSurveyResponseDto(
     val resultId: Long,
     val surveyId: Long,
     val status: SurveyStatus,
+    val nextSurveyId: Long? = null,
 )

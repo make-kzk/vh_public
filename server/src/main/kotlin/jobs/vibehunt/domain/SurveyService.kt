@@ -5,6 +5,7 @@ import jobs.vibehunt.db.SurveyRepository
 import jobs.vibehunt.survey.SaveSurveyAnswersRequest
 import jobs.vibehunt.survey.SurveyDefinitionDto
 import jobs.vibehunt.survey.SurveyDetailDto
+import jobs.vibehunt.survey.SurveyFlowRules
 import jobs.vibehunt.survey.SurveyGroupDto
 import jobs.vibehunt.survey.SurveyGroupsResponseDto
 import jobs.vibehunt.survey.SurveyListItemDto
@@ -30,18 +31,18 @@ class SurveyService(
 
     private val groupNames =
         mapOf(
-            "disc" to "DISC-профиль",
-            "motivation" to "Мотивация и ценности",
-            "team" to "Команда и самопредставление",
+            SurveyFlowRules.CORE_GROUP to "Тест 1",
+            SurveyFlowRules.GROUP_64QN to "Тест 2",
         )
 
-    private val groupOrder = listOf("disc", "motivation", "team")
+    private val groupOrder = listOf(SurveyFlowRules.CORE_GROUP, SurveyFlowRules.GROUP_64QN)
 
     fun listGroups(userId: UUID): SurveyGroupsResponseDto {
         val seeker = seekerRepository.findByUserId(userId) ?: error("Соискатель не найден")
         val surveys = surveyRepository.listSurveys()
         val results = surveyRepository.listResultsForSeeker(seeker.id)
         val statusBySurvey = buildStatusMap(results)
+        val coreSurveys = surveys.filter { it.groupCode == SurveyFlowRules.CORE_GROUP }
 
         val groups =
             groupOrder.map { groupCode ->
@@ -55,15 +56,25 @@ class SurveyService(
                             description = survey.description,
                             status = statusBySurvey[survey.id] ?: SurveyStatus.NOT_STARTED,
                             sortOrder = survey.sortOrder,
+                            locked = SurveyFlowRules.isSurveyLocked(survey, coreSurveys, statusBySurvey),
                         )
                     }
                 val completed = items.count { it.status == SurveyStatus.COMPLETED }
+                val groupLocked = SurveyFlowRules.isGroupLocked(groupCode, coreSurveys, statusBySurvey)
                 SurveyGroupDto(
                     code = groupCode,
                     name = groupNames[groupCode] ?: groupCode,
                     surveys = items,
                     completedCount = completed,
                     totalCount = items.size,
+                    status = SurveyFlowRules.groupStatus(items),
+                    locked = groupLocked,
+                    entrySurveyId =
+                        if (groupLocked || completed == items.size) {
+                            null
+                        } else {
+                            SurveyFlowRules.entrySurveyId(items)
+                        },
                 )
             }
 
@@ -80,6 +91,13 @@ class SurveyService(
         val survey = surveyRepository.findSurveyById(surveyId) ?: error("Опрос не найден")
         val status = resolveStatus(seeker.id, surveyId)
         val inProgress = surveyRepository.findInProgressResult(seeker.id, surveyId)
+        val completed = surveyRepository.findCompletedResult(seeker.id, surveyId)
+        val surveys = surveyRepository.listSurveys()
+        val results = surveyRepository.listResultsForSeeker(seeker.id)
+        val statusBySurvey = buildStatusMap(results)
+        val coreSurveys = surveys.filter { it.groupCode == SurveyFlowRules.CORE_GROUP }.sortedBy { it.sortOrder }
+        val stepNumber = SurveyFlowRules.coreStepNumber(survey, coreSurveys)
+        val stepTotal = if (survey.groupCode == SurveyFlowRules.CORE_GROUP) coreSurveys.size else null
         return SurveyDetailDto(
             id = survey.id,
             code = survey.code,
@@ -88,16 +106,28 @@ class SurveyService(
             groupCode = survey.groupCode,
             questionsJson = survey.questionsJson,
             status = status,
-            answersJson = inProgress?.answersJson,
-            resultId = inProgress?.id,
+            answersJson = inProgress?.answersJson ?: completed?.answersJson,
+            resultId = inProgress?.id ?: completed?.id,
+            locked = SurveyFlowRules.isSurveyLocked(survey, coreSurveys, statusBySurvey),
+            stepNumber = stepNumber,
+            stepTotal = stepTotal,
+            prevSurveyId = SurveyFlowRules.prevSurveyInCore(survey, coreSurveys),
+            nextSurveyId = SurveyFlowRules.nextSurveyInCore(survey, coreSurveys),
         )
     }
 
     fun startSurvey(userId: UUID, surveyId: Long): SurveyDetailDto {
         val seeker = seekerRepository.findByUserId(userId) ?: error("Соискатель не найден")
-        surveyRepository.findSurveyById(surveyId) ?: error("Опрос не найден")
+        val survey = surveyRepository.findSurveyById(surveyId) ?: error("Опрос не найден")
         if (surveyRepository.findCompletedResult(seeker.id, surveyId) != null) {
             error("Опрос уже пройден")
+        }
+        val surveys = surveyRepository.listSurveys()
+        val results = surveyRepository.listResultsForSeeker(seeker.id)
+        val statusBySurvey = buildStatusMap(results)
+        val coreSurveys = surveys.filter { it.groupCode == SurveyFlowRules.CORE_GROUP }
+        if (SurveyFlowRules.isSurveyLocked(survey, coreSurveys, statusBySurvey)) {
+            error("Сначала завершите предыдущие методики")
         }
         if (surveyRepository.findInProgressResult(seeker.id, surveyId) == null) {
             surveyRepository.createInProgressResult(seeker.id, surveyId)
@@ -108,24 +138,27 @@ class SurveyService(
     fun saveAnswers(userId: UUID, surveyId: Long, request: SaveSurveyAnswersRequest): SurveyDetailDto {
         val seeker = seekerRepository.findByUserId(userId) ?: error("Соискатель не найден")
         val survey = surveyRepository.findSurveyById(surveyId) ?: error("Опрос не найден")
+        val answersJson = json.encodeToString(kotlinx.serialization.json.JsonElement.serializer(), request.answers)
         val result =
             surveyRepository.findInProgressResult(seeker.id, surveyId)
+                ?: editableCompletedResult(seeker.id, survey)
                 ?: error("Сначала начните опрос")
-        val answersJson = json.encodeToString(kotlinx.serialization.json.JsonElement.serializer(), request.answers)
         surveyRepository.updateAnswers(result.id, answersJson)
             ?: error("Не удалось сохранить ответы")
         return getSurvey(userId, surveyId)
     }
 
-    fun completeSurvey(userId: UUID, surveyId: Long, request: SaveSurveyAnswersRequest): SurveyResultDto {
+    fun completeSurvey(userId: UUID, surveyId: Long, request: SaveSurveyAnswersRequest): CompleteSurveyResult {
         val seeker = seekerRepository.findByUserId(userId) ?: error("Соискатель не найден")
         val survey = surveyRepository.findSurveyById(surveyId) ?: error("Опрос не найден")
-        if (surveyRepository.findCompletedResult(seeker.id, surveyId) != null) {
-            error("Опрос уже пройден")
-        }
-        val result =
-            surveyRepository.findInProgressResult(seeker.id, surveyId)
-                ?: error("Сначала начните опрос")
+        val surveys = surveyRepository.listSurveys()
+        val coreSurveys = surveys.filter { it.groupCode == SurveyFlowRules.CORE_GROUP }.sortedBy { it.sortOrder }
+        val completed = surveyRepository.findCompletedResult(seeker.id, surveyId)
+        val coreGroupComplete =
+            SurveyFlowRules.isCoreGroupComplete(
+                coreSurveys,
+                buildStatusMap(surveyRepository.listResultsForSeeker(seeker.id)),
+            )
 
         SurveyAnswerValidator.validate(survey.code, survey.questionsJson, request.answers)
         val answersJson = json.encodeToString(kotlinx.serialization.json.JsonElement.serializer(), request.answers)
@@ -138,14 +171,32 @@ class SurveyService(
                 questionsJson = survey.questionsJson,
                 answersJson = answersJson,
             )
+
         val completedResult =
-            surveyRepository.completeResult(result.id, answersJson, calculated)
-                ?: error("Не удалось завершить опрос")
+            when {
+                completed != null && survey.groupCode == SurveyFlowRules.CORE_GROUP && !coreGroupComplete -> {
+                    surveyRepository.updateCompletedResult(completed.id, answersJson, calculated)
+                        ?: error("Не удалось сохранить ответы")
+                }
+                completed != null -> error("Опрос уже пройден")
+                else -> {
+                    val result =
+                        surveyRepository.findInProgressResult(seeker.id, surveyId)
+                            ?: error("Сначала начните опрос")
+                    surveyRepository.completeResult(result.id, answersJson, calculated)
+                        ?: error("Не удалось завершить опрос")
+                }
+            }
+
         val groups = listGroups(userId)
         if (groups.testsCompleted >= groups.testsTotal) {
             profileGenerationTrigger?.invoke(userId)
         }
-        return completedResult
+        val nextSurveyId = SurveyFlowRules.nextSurveyInCore(survey, coreSurveys)
+        return CompleteSurveyResult(
+            result = completedResult,
+            nextSurveyId = nextSurveyId,
+        )
     }
 
     fun buildLlmContext(userId: UUID): SurveyLlmContextDto {
@@ -188,4 +239,19 @@ class SurveyService(
         if (inProgress != null) return SurveyStatus.IN_PROGRESS
         return SurveyStatus.NOT_STARTED
     }
+
+    private fun editableCompletedResult(seekerId: Long, survey: SurveyDefinitionDto): SurveyResultDto? {
+        if (survey.groupCode != SurveyFlowRules.CORE_GROUP) return null
+        val completed = surveyRepository.findCompletedResult(seekerId, survey.id) ?: return null
+        val surveys = surveyRepository.listSurveys()
+        val coreSurveys = surveys.filter { it.groupCode == SurveyFlowRules.CORE_GROUP }
+        val statusBySurvey = buildStatusMap(surveyRepository.listResultsForSeeker(seekerId))
+        if (SurveyFlowRules.isCoreGroupComplete(coreSurveys, statusBySurvey)) return null
+        return completed
+    }
 }
+
+data class CompleteSurveyResult(
+    val result: SurveyResultDto,
+    val nextSurveyId: Long?,
+)

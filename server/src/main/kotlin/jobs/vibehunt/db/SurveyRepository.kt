@@ -124,6 +124,19 @@ class SurveyRepository {
             findResultById(resultId)
         }
 
+    fun updateCompletedResult(resultId: Long, answersJson: String, calculatedResultsJson: String): SurveyResultDto? =
+        transaction {
+            val now = OffsetDateTime.now()
+            val updated =
+                SurveyResultsTable.update({ SurveyResultsTable.id eq resultId }) {
+                    it[answers] = answersJson
+                    it[calculatedResults] = calculatedResultsJson
+                    it[updatedAt] = now
+                }
+            if (updated == 0) return@transaction null
+            findResultById(resultId)
+        }
+
     fun listGlossaryTerms(): List<GlossaryTermDto> =
         transaction {
             GlossaryTermsTable.selectAll().map {

@@ -70,8 +70,8 @@ export function SeekerPersonalityPage() {
     <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p>
-          Пройдено групп тестов: {data.testsCompleted}/{data.testsTotal}. Для точного мэтчинга завершите все
-          методики в каждой группе.
+          Пройдено тестов: {data.testsCompleted}/{data.testsTotal}. Для точного мэтчинга завершите все
+          методики в каждом тесте.
         </p>
         <Link
           to="/seeker/personality/tests"
@@ -89,7 +89,7 @@ export function SeekerPersonalityPage() {
         <div>
           <h1 className="text-2xl font-semibold">Личностные характеристики</h1>
           <p className="mt-1 text-sm text-neutral-600">
-            Пройдите все методики для формирования профиля
+            Пройдите все тесты для формирования профиля
           </p>
         </div>
         {testsBanner}
@@ -103,7 +103,7 @@ export function SeekerPersonalityPage() {
         <div>
           <h1 className="text-2xl font-semibold">Личностные характеристики</h1>
           <p className="mt-1 text-sm text-neutral-600">
-            Все группы тестов пройдены — формируем ваш профиль
+            Все тесты пройдены — формируем ваш профиль
           </p>
         </div>
         {testsBanner}

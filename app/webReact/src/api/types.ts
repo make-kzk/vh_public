@@ -259,6 +259,7 @@ export interface SurveyListItemDto {
   description: string
   status: SurveyStatus
   sortOrder: number
+  locked: boolean
 }
 
 export interface SurveyGroupDto {
@@ -267,6 +268,9 @@ export interface SurveyGroupDto {
   surveys: SurveyListItemDto[]
   completedCount: number
   totalCount: number
+  status: SurveyStatus
+  locked: boolean
+  entrySurveyId: number | null
 }
 
 export interface SurveyGroupsResponseDto {
@@ -285,12 +289,18 @@ export interface SurveyDetailDto {
   status: SurveyStatus
   answersJson: string | null
   resultId: number | null
+  locked: boolean
+  stepNumber?: number | null
+  stepTotal?: number | null
+  prevSurveyId?: number | null
+  nextSurveyId?: number | null
 }
 
 export interface CompleteSurveyResponseDto {
   resultId: number
   surveyId: number
   status: SurveyStatus
+  nextSurveyId?: number | null
 }
 
 export interface SurveyOption {

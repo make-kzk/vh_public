@@ -211,9 +211,10 @@ fun Route.seekerRoutes(
                 val result = surveyService.completeSurvey(user.id, id, body)
                 call.respond(
                     jobs.vibehunt.survey.CompleteSurveyResponseDto(
-                        resultId = result.id,
-                        surveyId = result.surveyId,
+                        resultId = result.result.id,
+                        surveyId = result.result.surveyId,
                         status = jobs.vibehunt.survey.SurveyStatus.COMPLETED,
+                        nextSurveyId = result.nextSurveyId,
                     ),
                 )
             } catch (e: IllegalArgumentException) {
